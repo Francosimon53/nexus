@@ -1,4 +1,16 @@
-export default function Home() {
+export const dynamic = 'force-dynamic';
+
+import Link from 'next/link';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
+
+export default async function Home() {
+  const supabase = getSupabaseAdmin();
+
+  const [{ count: agentCount }, { count: taskCount }] = await Promise.all([
+    supabase.from('agents').select('*', { count: 'exact', head: true }),
+    supabase.from('tasks').select('*', { count: 'exact', head: true }),
+  ]);
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-4">
       <div className="absolute inset-0 overflow-hidden">
@@ -9,7 +21,7 @@ export default function Home() {
       <main className="relative z-10 max-w-3xl text-center">
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface-raised px-4 py-1.5 text-sm text-text-secondary">
           <span className="h-2 w-2 rounded-full bg-nexus-400 animate-pulse" />
-          Phase 0 — Foundation
+          Phase 6 — Marketplace
         </div>
 
         <h1 className="mb-6 text-5xl font-bold tracking-tight sm:text-7xl">
@@ -31,12 +43,18 @@ export default function Home() {
           <div className="rounded-lg border border-border bg-surface-raised px-6 py-3 text-sm font-mono text-text-secondary">
             pnpm add @nexus-protocol/sdk
           </div>
+          <Link
+            href="/marketplace"
+            className="rounded-lg bg-nexus-600 px-6 py-3 text-sm font-medium text-white hover:bg-nexus-500 transition-colors"
+          >
+            Explore Marketplace
+          </Link>
         </div>
 
         <div className="mt-16 grid grid-cols-2 gap-4 sm:grid-cols-4 text-center">
           {[
-            ['Agent Registry', 'Discover & connect'],
-            ['Task Delegation', 'Route work to specialists'],
+            ['Agent Registry', `${agentCount ?? 0} agents live`],
+            ['Task Delegation', `${taskCount ?? 0} tasks processed`],
             ['Trust Scores', 'Reputation-based routing'],
             ['Micro-billing', 'Per-task credit settlement'],
           ].map(([title, desc]) => (

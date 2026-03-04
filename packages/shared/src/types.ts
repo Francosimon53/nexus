@@ -95,6 +95,7 @@ export const AgentSchema = z.object({
   tags: z.array(z.string()).default([]),
   trustScore: z.number().min(0).max(100).default(50),
   pricePerTask: z.number().nonnegative().default(0),
+  featured: z.boolean().default(false),
   metadata: z.record(z.unknown()).default({}),
   agentCard: AgentCardSchema.optional(),
   lastHeartbeat: z.string().datetime().nullable().optional(),
@@ -204,11 +205,21 @@ export type JsonRpcRequest = z.infer<typeof JsonRpcRequestSchema>;
 
 // ── Workflow ───────────────────────────────────────────────────────────────────
 
+export const RetryPolicySchema = z.object({
+  maxRetries: z.number().int().min(0).max(5).default(0),
+  backoffMs: z.number().int().min(100).max(60000).default(1000),
+});
+
+export type RetryPolicy = z.infer<typeof RetryPolicySchema>;
+
 export const WorkflowStepSchema = z.object({
+  name: z.string().min(1).max(100).default('Untitled Step'),
   agentId: z.string().uuid(),
   skillId: z.string(),
   input: z.record(z.unknown()).default({}),
   dependsOn: z.array(z.number().int().nonnegative()).default([]),
+  timeout: z.number().int().min(10).max(3600).default(300),
+  retryPolicy: RetryPolicySchema.default({}),
 });
 
 export type WorkflowStep = z.infer<typeof WorkflowStepSchema>;
@@ -216,6 +227,7 @@ export type WorkflowStep = z.infer<typeof WorkflowStepSchema>;
 export const WorkflowSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(200),
+  description: z.string().max(2000).default(''),
   ownerUserId: z.string().uuid(),
   steps: z.array(WorkflowStepSchema),
   createdAt: z.string().datetime(),
@@ -223,6 +235,65 @@ export const WorkflowSchema = z.object({
 });
 
 export type Workflow = z.infer<typeof WorkflowSchema>;
+
+export const CreateWorkflowSchema = z.object({
+  name: z.string().min(1).max(200),
+  description: z.string().max(2000).default(''),
+  steps: z.array(WorkflowStepSchema).min(1).max(20),
+});
+
+export type CreateWorkflowInput = z.infer<typeof CreateWorkflowSchema>;
+
+// ── Workflow Runs ───────────────────────────────────────────────────────────
+
+export const WorkflowRunStatusEnum = z.enum([
+  'pending',
+  'running',
+  'completed',
+  'failed',
+  'cancelled',
+]);
+export type WorkflowRunStatus = z.infer<typeof WorkflowRunStatusEnum>;
+
+export const StepResultSchema = z.object({
+  stepIndex: z.number().int().nonnegative(),
+  status: z.enum(['pending', 'running', 'completed', 'failed', 'skipped']),
+  taskId: z.string().uuid().nullable().default(null),
+  output: z.record(z.unknown()).nullable().default(null),
+  error: z.string().nullable().default(null),
+  startedAt: z.string().datetime().nullable().default(null),
+  completedAt: z.string().datetime().nullable().default(null),
+});
+
+export type StepResult = z.infer<typeof StepResultSchema>;
+
+export const WorkflowRunSchema = z.object({
+  id: z.string().uuid(),
+  workflowId: z.string().uuid(),
+  status: WorkflowRunStatusEnum.default('pending'),
+  startedAt: z.string().datetime().nullable().default(null),
+  completedAt: z.string().datetime().nullable().default(null),
+  stepResults: z.array(StepResultSchema).default([]),
+  error: z.string().nullable().default(null),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export type WorkflowRun = z.infer<typeof WorkflowRunSchema>;
+
+// ── Marketplace ─────────────────────────────────────────────────────────────
+
+export const MarketplaceQuerySchema = z.object({
+  q: z.string().optional(),
+  tags: z
+    .string()
+    .optional()
+    .transform((v) => (v ? v.split(',').map((s) => s.trim()) : undefined)),
+  minTrust: z.coerce.number().min(0).max(100).optional(),
+  maxPrice: z.coerce.number().nonnegative().optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
+});
 
 // ── Trust ──────────────────────────────────────────────────────────────────────
 
