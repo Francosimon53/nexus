@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { successResponse, errorResponse } from '@/lib/api-utils';
 import { forwardToAgent } from '@/lib/agent-forwarder';
 import { checkTimeout } from '@/lib/task-timeout';
+import { emitTrustEvent, getTaskCompletedScore, SCORE_TASK_FAILED, SCORE_SLA_BREACH } from '@/lib/trust-events';
 import type { A2AMessage } from '@nexus-protocol/shared';
 
 async function getSystemAgentId(supabase: ReturnType<typeof getSupabaseAdmin>): Promise<string> {
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest) {
     try {
       const result = await forwardToAgent(agent.endpoint as string, task.id as string, userMessage);
 
+      const now = new Date().toISOString();
       await supabase
         .from('tasks')
         .update({
@@ -79,9 +81,32 @@ export async function POST(request: NextRequest) {
           output: result.artifacts?.[0]?.parts?.[0]?.data
             ? { result: result.artifacts[0].parts[0].data }
             : null,
-          completed_at: result.status === 'completed' ? new Date().toISOString() : null,
+          completed_at: result.status === 'completed' ? now : null,
         })
         .eq('id', task.id);
+
+      // Emit trust events
+      const responseMs = Date.now() - new Date(task.created_at as string).getTime();
+      const SLA_MS = 5 * 60 * 1000;
+
+      if (result.status === 'completed') {
+        await emitTrustEvent(supabase, {
+          agentId: input.assignedAgentId,
+          eventType: 'task_completed',
+          score: getTaskCompletedScore(responseMs),
+          reason: `Task completed in ${Math.round(responseMs / 1000)}s`,
+          taskId: task.id as string,
+        });
+        if (responseMs > SLA_MS) {
+          await emitTrustEvent(supabase, {
+            agentId: input.assignedAgentId,
+            eventType: 'sla_breach',
+            score: SCORE_SLA_BREACH,
+            reason: `Response time ${Math.round(responseMs / 1000)}s exceeded 5m SLA`,
+            taskId: task.id as string,
+          });
+        }
+      }
 
       // Re-fetch updated task
       const { data: updated } = await supabase
@@ -102,6 +127,14 @@ export async function POST(request: NextRequest) {
           completed_at: new Date().toISOString(),
         })
         .eq('id', task.id);
+
+      await emitTrustEvent(supabase, {
+        agentId: input.assignedAgentId,
+        eventType: 'task_failed',
+        score: SCORE_TASK_FAILED,
+        reason: `Task failed: ${errMsg}`,
+        taskId: task.id as string,
+      });
 
       const { data: failedTask } = await supabase
         .from('tasks')

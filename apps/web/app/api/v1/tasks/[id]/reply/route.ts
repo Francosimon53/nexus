@@ -3,6 +3,7 @@ import { TaskReplySchema } from '@nexus-protocol/shared';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { successResponse, errorResponse } from '@/lib/api-utils';
 import { forwardToAgent } from '@/lib/agent-forwarder';
+import { emitTrustEvent, getTaskCompletedScore, SCORE_SLA_BREACH } from '@/lib/trust-events';
 import { TaskNotFoundError, ValidationError } from '@nexus-protocol/shared';
 import type { A2AMessage, A2AArtifact } from '@nexus-protocol/shared';
 
@@ -69,6 +70,29 @@ export async function POST(
         .single();
 
       if (updateErr) return errorResponse(new Error(updateErr.message));
+
+      // Emit trust event on completion
+      if (result.status === 'completed' && task.assigned_agent_id) {
+        const responseMs = Date.now() - new Date(task.created_at as string).getTime();
+        const SLA_MS = 5 * 60 * 1000;
+        await emitTrustEvent(supabase, {
+          agentId: task.assigned_agent_id as string,
+          eventType: 'task_completed',
+          score: getTaskCompletedScore(responseMs),
+          reason: `Task completed in ${Math.round(responseMs / 1000)}s`,
+          taskId: id,
+        });
+        if (responseMs > SLA_MS) {
+          await emitTrustEvent(supabase, {
+            agentId: task.assigned_agent_id as string,
+            eventType: 'sla_breach',
+            score: SCORE_SLA_BREACH,
+            reason: `Response time ${Math.round(responseMs / 1000)}s exceeded 5m SLA`,
+            taskId: id,
+          });
+        }
+      }
+
       return successResponse(updated);
     } catch (fwdErr) {
       // Save the message even if forward fails

@@ -20,6 +20,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@nexus-protocol/protocol':
+        specifier: workspace:*
+        version: link:../../packages/protocol
       '@nexus-protocol/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -126,6 +129,9 @@ importers:
       '@nexus-protocol/shared':
         specifier: workspace:*
         version: link:../shared
+      '@supabase/supabase-js':
+        specifier: ^2.47.12
+        version: 2.98.0
     devDependencies:
       '@types/node':
         specifier: ^22.12.0

@@ -227,6 +227,8 @@ export type Workflow = z.infer<typeof WorkflowSchema>;
 export const TrustEventTypeEnum = z.enum([
   'task_completed',
   'task_failed',
+  'task_timeout',
+  'sla_breach',
   'rating_received',
   'dispute_opened',
   'dispute_resolved',
@@ -239,10 +241,58 @@ export const TrustEventSchema = z.object({
   eventType: TrustEventTypeEnum,
   score: z.number().min(-10).max(10),
   reason: z.string().default(''),
+  taskId: z.string().uuid().nullable().default(null),
   createdAt: z.string().datetime(),
 });
 
 export type TrustEvent = z.infer<typeof TrustEventSchema>;
+
+// ── Trust Score Components ────────────────────────────────────────────────────
+
+export const TrustComponentsSchema = z.object({
+  reliability: z.number().min(0).max(100).default(50),
+  speed: z.number().min(0).max(100).default(50),
+  quality: z.number().min(0).max(100).default(50),
+  tenure: z.number().min(0).max(100).default(0),
+});
+
+export type TrustComponents = z.infer<typeof TrustComponentsSchema>;
+
+export const TRUST_WEIGHTS = {
+  reliability: 0.40,
+  speed: 0.20,
+  quality: 0.25,
+  tenure: 0.15,
+} as const;
+
+export type TrustBadge = 'Verified Elite' | 'Trusted' | 'Established' | 'New';
+
+export function getTrustBadge(score: number): TrustBadge {
+  if (score >= 90) return 'Verified Elite';
+  if (score >= 70) return 'Trusted';
+  if (score >= 50) return 'Established';
+  return 'New';
+}
+
+// ── Rating ────────────────────────────────────────────────────────────────────
+
+export const RateAgentSchema = z.object({
+  taskId: z.string().uuid(),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().max(1000).default(''),
+});
+
+export type RateAgentInput = z.infer<typeof RateAgentSchema>;
+
+// ── API Key Creation ──────────────────────────────────────────────────────────
+
+export const CreateApiKeySchema = z.object({
+  name: z.string().min(1).max(100),
+  scopes: z.array(z.string()).default(['*']),
+  expiresInDays: z.number().int().min(1).max(365).nullable().default(null),
+});
+
+export type CreateApiKeyInput = z.infer<typeof CreateApiKeySchema>;
 
 // ── Billing ────────────────────────────────────────────────────────────────────
 

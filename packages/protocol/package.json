@@ -17,7 +17,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@nexus-protocol/shared": "workspace:*"
+    "@nexus-protocol/shared": "workspace:*",
+    "@supabase/supabase-js": "^2.47.12"
   },
   "devDependencies": {
     "@types/node": "^22.12.0",
