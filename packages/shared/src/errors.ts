@@ -85,3 +85,15 @@ export class RateLimitError extends NexusError {
     });
   }
 }
+
+export class AgentEndpointError extends NexusError {
+  constructor(endpoint: string, cause?: string) {
+    super('PROTOCOL_ERROR', `Agent endpoint unreachable: ${endpoint}${cause ? ` (${cause})` : ''}`, 502);
+  }
+}
+
+export class TaskTimeoutError extends NexusError {
+  constructor(taskId: string) {
+    super('TASK_CANCELLED', `Task timed out: ${taskId}`, 408);
+  }
+}

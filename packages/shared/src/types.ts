@@ -158,14 +158,47 @@ export const TaskSchema = z.object({
   assignedAgentId: z.string().uuid().nullable().default(null),
   input: z.record(z.unknown()).default({}),
   output: z.record(z.unknown()).nullable().default(null),
+  messages: z.array(A2AMessageSchema).default([]),
+  artifacts: z.array(A2AArtifactSchema).default([]),
   maxBudgetCredits: z.number().nonnegative().default(0),
   actualCostCredits: z.number().nonnegative().default(0),
+  timeoutAt: z.string().datetime().nullable().default(null),
+  retryCount: z.number().int().nonnegative().default(0),
+  errorMessage: z.string().nullable().default(null),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   completedAt: z.string().datetime().nullable().default(null),
 });
 
 export type Task = z.infer<typeof TaskSchema>;
+
+// ── Task Creation / Reply ────────────────────────────────────────────────────
+
+export const CreateTaskSchema = z.object({
+  assignedAgentId: z.string().uuid(),
+  title: z.string().min(1).max(200),
+  description: z.string().max(2000).default(''),
+  input: z.record(z.unknown()).default({}),
+  timeoutSeconds: z.number().int().min(10).max(3600).default(300),
+});
+
+export type CreateTaskInput = z.infer<typeof CreateTaskSchema>;
+
+export const TaskReplySchema = z.object({
+  message: A2AMessageSchema,
+  artifacts: z.array(A2AArtifactSchema).optional(),
+});
+
+export type TaskReplyInput = z.infer<typeof TaskReplySchema>;
+
+export const JsonRpcRequestSchema = z.object({
+  jsonrpc: z.literal('2.0'),
+  id: z.union([z.string(), z.number()]),
+  method: z.string(),
+  params: z.record(z.unknown()).optional(),
+});
+
+export type JsonRpcRequest = z.infer<typeof JsonRpcRequestSchema>;
 
 // ── Workflow ───────────────────────────────────────────────────────────────────
 
