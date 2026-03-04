@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
         skills: input.skills,
         tags: input.tags,
         metadata: input.metadata,
+        price_per_task: input.pricePerTask,
         agent_card: agentCard,
         owner_user_id: DEMO_USER_ID,
       })

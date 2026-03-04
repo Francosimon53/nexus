@@ -11,13 +11,14 @@
     "clean": "rm -rf .next"
   },
   "dependencies": {
-    "@nexus-protocol/shared": "workspace:*",
     "@nexus-protocol/protocol": "workspace:*",
+    "@nexus-protocol/shared": "workspace:*",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.12",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "stripe": "^20.4.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {

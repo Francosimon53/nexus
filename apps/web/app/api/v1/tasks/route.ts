@@ -5,6 +5,7 @@ import { successResponse, errorResponse } from '@/lib/api-utils';
 import { forwardToAgent } from '@/lib/agent-forwarder';
 import { checkTimeout } from '@/lib/task-timeout';
 import { emitTrustEvent, getTaskCompletedScore, SCORE_TASK_FAILED, SCORE_SLA_BREACH } from '@/lib/trust-events';
+import { settleTask } from '@/lib/billing';
 import type { A2AMessage } from '@nexus-protocol/shared';
 
 async function getSystemAgentId(supabase: ReturnType<typeof getSupabaseAdmin>): Promise<string> {
@@ -105,6 +106,21 @@ export async function POST(request: NextRequest) {
             reason: `Response time ${Math.round(responseMs / 1000)}s exceeded 5m SLA`,
             taskId: task.id as string,
           });
+        }
+
+        // Settle billing
+        try {
+          const { data: pricedAgent } = await supabase
+            .from('agents')
+            .select('price_per_task')
+            .eq('id', input.assignedAgentId)
+            .single();
+          const price = Number(pricedAgent?.price_per_task ?? 0);
+          if (price > 0) {
+            await settleTask(supabase, task.id as string, requesterAgentId, input.assignedAgentId, price);
+          }
+        } catch (billingErr) {
+          console.error('Billing settlement failed (non-fatal):', billingErr);
         }
       }
 

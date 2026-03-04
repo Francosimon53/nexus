@@ -94,6 +94,7 @@ export const AgentSchema = z.object({
   skills: z.array(AgentSkillSchema).default([]),
   tags: z.array(z.string()).default([]),
   trustScore: z.number().min(0).max(100).default(50),
+  pricePerTask: z.number().nonnegative().default(0),
   metadata: z.record(z.unknown()).default({}),
   agentCard: AgentCardSchema.optional(),
   lastHeartbeat: z.string().datetime().nullable().optional(),
@@ -112,6 +113,7 @@ export const RegisterAgentSchema = z.object({
   skills: z.array(AgentSkillSchema).default([]),
   tags: z.array(z.string()).default([]),
   metadata: z.record(z.unknown()).default({}),
+  pricePerTask: z.number().nonnegative().default(0),
 });
 
 export type RegisterAgentInput = z.infer<typeof RegisterAgentSchema>;
@@ -307,6 +309,64 @@ export const TransactionSchema = z.object({
 });
 
 export type Transaction = z.infer<typeof TransactionSchema>;
+
+// ── Credit Economy ──────────────────────────────────────────────────────────
+
+export const CreditBalanceSchema = z.object({
+  userId: z.string().uuid(),
+  balance: z.number().nonnegative(),
+  totalEarned: z.number().nonnegative(),
+  totalSpent: z.number().nonnegative(),
+  totalPurchased: z.number().nonnegative(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export type CreditBalance = z.infer<typeof CreditBalanceSchema>;
+
+export const CreditTransactionTypeEnum = z.enum([
+  'initial_grant',
+  'purchase',
+  'task_debit',
+  'task_credit',
+  'platform_fee',
+  'refund',
+]);
+export type CreditTransactionType = z.infer<typeof CreditTransactionTypeEnum>;
+
+export const CreditTransactionSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid(),
+  type: CreditTransactionTypeEnum,
+  amount: z.number(),
+  balanceAfter: z.number(),
+  referenceId: z.string().nullable().default(null),
+  description: z.string().default(''),
+  metadata: z.record(z.unknown()).default({}),
+  createdAt: z.string().datetime(),
+});
+
+export type CreditTransaction = z.infer<typeof CreditTransactionSchema>;
+
+export const CREDIT_PACKAGES = [
+  { id: 'starter', credits: 1000, priceUsd: 1000, label: '1,000 credits — $10' },
+  { id: 'pro', credits: 5000, priceUsd: 4000, label: '5,000 credits — $40' },
+  { id: 'enterprise', credits: 25000, priceUsd: 15000, label: '25,000 credits — $150' },
+] as const;
+
+export type CreditPackageId = (typeof CREDIT_PACKAGES)[number]['id'];
+
+export const CreateCheckoutSchema = z.object({
+  packageId: z.enum(['starter', 'pro', 'enterprise']),
+});
+
+export type CreateCheckoutInput = z.infer<typeof CreateCheckoutSchema>;
+
+export const PLATFORM_FEE_RATE = 0.05;
+
+export const BillingUsageQuerySchema = z.object({
+  period: z.enum(['7d', '30d', '90d']).default('30d'),
+});
 
 // ── API Key ────────────────────────────────────────────────────────────────────
 

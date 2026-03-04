@@ -1,4 +1,4 @@
-import type { Agent, Task, TrustEvent } from '@nexus-protocol/shared';
+import type { Agent, Task, TrustEvent, CreditPackageId } from '@nexus-protocol/shared';
 import { NexusError } from '@nexus-protocol/shared';
 
 export interface NexusClientConfig {
@@ -172,15 +172,61 @@ export class TrustService {
   }
 }
 
+export class BillingService {
+  constructor(
+    private baseUrl: string,
+    private apiKey: string,
+  ) {}
+
+  async getBalance(): Promise<{
+    user_id: string;
+    balance: number;
+    total_earned: number;
+    total_spent: number;
+    total_purchased: number;
+  }> {
+    return request(this.baseUrl, this.apiKey, 'GET', '/v1/billing/balance');
+  }
+
+  async getTransactions(params?: {
+    limit?: number;
+    offset?: number;
+    type?: string;
+  }): Promise<{ transactions: unknown[]; total: number; limit: number; offset: number }> {
+    const query = new URLSearchParams();
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.offset) query.set('offset', String(params.offset));
+    if (params?.type) query.set('type', params.type);
+    const qs = query.toString();
+    return request(this.baseUrl, this.apiKey, 'GET', `/v1/billing/transactions${qs ? `?${qs}` : ''}`);
+  }
+
+  async getUsage(period?: '7d' | '30d' | '90d'): Promise<{
+    period: string;
+    daily: { date: string; spent: number; earned: number }[];
+    totalSpent: number;
+    totalEarned: number;
+  }> {
+    const qs = period ? `?period=${period}` : '';
+    return request(this.baseUrl, this.apiKey, 'GET', `/v1/billing/usage${qs}`);
+  }
+
+  async createCheckout(packageId: CreditPackageId): Promise<{ url: string }> {
+    return request(this.baseUrl, this.apiKey, 'POST', '/v1/billing/checkout', { packageId });
+  }
+}
+
 export class NexusClient {
   public readonly agents: AgentService;
   public readonly tasks: TaskService;
   public readonly trust: TrustService;
+  public readonly billing: BillingService;
 
   constructor(config: NexusClientConfig) {
     const baseUrl = (config.baseUrl ?? 'https://api.nexus-protocol.dev').replace(/\/+$/, '');
     this.agents = new AgentService(baseUrl, config.apiKey);
     this.tasks = new TaskService(baseUrl, config.apiKey);
     this.trust = new TrustService(baseUrl, config.apiKey);
+    this.billing = new BillingService(baseUrl, config.apiKey);
   }
 }

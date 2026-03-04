@@ -50,6 +50,11 @@ export default async function AgentsPage() {
                 {agent.description || 'No description'}
               </p>
               <TrustScoreBar score={Number(agent.trust_score)} />
+              {Number(agent.price_per_task) > 0 && (
+                <p className="mt-2 text-xs text-text-secondary">
+                  <span className="font-medium text-nexus-400">{Number(agent.price_per_task)}</span> credits/task
+                </p>
+              )}
               {agent.tags && agent.tags.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1">
                   {agent.tags.map((tag: string) => (
