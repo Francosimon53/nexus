@@ -1,5 +1,73 @@
 import { z } from 'zod';
 
+// ── A2A Protocol Types ─────────────────────────────────────────────────────────
+// (Placed first because AgentSchema references AgentCardSchema)
+
+export const A2ASkillSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  tags: z.array(z.string()).default([]),
+  examples: z.array(z.string()).default([]),
+});
+
+export type A2ASkill = z.infer<typeof A2ASkillSchema>;
+
+export const AgentCardSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  url: z.string().url(),
+  version: z.string().default('1.0.0'),
+  capabilities: z.object({
+    streaming: z.boolean().default(false),
+    pushNotifications: z.boolean().default(false),
+    stateTransitionHistory: z.boolean().default(false),
+  }),
+  skills: z.array(A2ASkillSchema).default([]),
+  authentication: z
+    .object({
+      schemes: z.array(z.string()),
+    })
+    .optional(),
+});
+
+export type AgentCard = z.infer<typeof AgentCardSchema>;
+
+export const A2AArtifactSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  parts: z.array(
+    z.object({
+      type: z.string(),
+      data: z.unknown(),
+    }),
+  ),
+});
+
+export type A2AArtifact = z.infer<typeof A2AArtifactSchema>;
+
+export const A2ATaskStatusEnum = z.enum([
+  'submitted',
+  'working',
+  'input-required',
+  'completed',
+  'canceled',
+  'failed',
+]);
+export type A2ATaskStatus = z.infer<typeof A2ATaskStatusEnum>;
+
+export const A2AMessageSchema = z.object({
+  role: z.enum(['user', 'agent']),
+  parts: z.array(
+    z.object({
+      type: z.string(),
+      data: z.unknown(),
+    }),
+  ),
+});
+
+export type A2AMessage = z.infer<typeof A2AMessageSchema>;
+
 // ── Agent ──────────────────────────────────────────────────────────────────────
 
 export const AgentSkillSchema = z.object({
@@ -27,11 +95,47 @@ export const AgentSchema = z.object({
   tags: z.array(z.string()).default([]),
   trustScore: z.number().min(0).max(100).default(50),
   metadata: z.record(z.unknown()).default({}),
+  agentCard: AgentCardSchema.optional(),
+  lastHeartbeat: z.string().datetime().nullable().optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
 
 export type Agent = z.infer<typeof AgentSchema>;
+
+// ── Registration / Discovery / Heartbeat ─────────────────────────────────────
+
+export const RegisterAgentSchema = z.object({
+  name: z.string().min(1).max(100),
+  description: z.string().max(1000).default(''),
+  endpoint: z.string().url(),
+  skills: z.array(AgentSkillSchema).default([]),
+  tags: z.array(z.string()).default([]),
+  metadata: z.record(z.unknown()).default({}),
+});
+
+export type RegisterAgentInput = z.infer<typeof RegisterAgentSchema>;
+
+export const DiscoverAgentsQuerySchema = z.object({
+  skillTags: z
+    .string()
+    .optional()
+    .transform((v) => (v ? v.split(',').map((s) => s.trim()) : undefined)),
+  category: z.string().optional(),
+  minTrustScore: z.coerce.number().min(0).max(100).optional(),
+  status: AgentStatusEnum.optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
+export type DiscoverAgentsQuery = z.infer<typeof DiscoverAgentsQuerySchema>;
+
+export const HeartbeatSchema = z.object({
+  status: AgentStatusEnum.optional(),
+  metadata: z.record(z.unknown()).optional(),
+});
+
+export type HeartbeatInput = z.infer<typeof HeartbeatSchema>;
 
 // ── Task ───────────────────────────────────────────────────────────────────────
 
@@ -136,70 +240,3 @@ export const ApiKeySchema = z.object({
 });
 
 export type ApiKey = z.infer<typeof ApiKeySchema>;
-
-// ── A2A Protocol Types ─────────────────────────────────────────────────────────
-
-export const A2ASkillSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string(),
-  tags: z.array(z.string()).default([]),
-  examples: z.array(z.string()).default([]),
-});
-
-export type A2ASkill = z.infer<typeof A2ASkillSchema>;
-
-export const AgentCardSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  url: z.string().url(),
-  version: z.string().default('1.0.0'),
-  capabilities: z.object({
-    streaming: z.boolean().default(false),
-    pushNotifications: z.boolean().default(false),
-    stateTransitionHistory: z.boolean().default(false),
-  }),
-  skills: z.array(A2ASkillSchema).default([]),
-  authentication: z
-    .object({
-      schemes: z.array(z.string()),
-    })
-    .optional(),
-});
-
-export type AgentCard = z.infer<typeof AgentCardSchema>;
-
-export const A2AArtifactSchema = z.object({
-  name: z.string().optional(),
-  description: z.string().optional(),
-  parts: z.array(
-    z.object({
-      type: z.string(),
-      data: z.unknown(),
-    }),
-  ),
-});
-
-export type A2AArtifact = z.infer<typeof A2AArtifactSchema>;
-
-export const A2ATaskStatusEnum = z.enum([
-  'submitted',
-  'working',
-  'input-required',
-  'completed',
-  'canceled',
-  'failed',
-]);
-export type A2ATaskStatus = z.infer<typeof A2ATaskStatusEnum>;
-
-export const A2AMessageSchema = z.object({
-  role: z.enum(['user', 'agent']),
-  parts: z.array(
-    z.object({
-      type: z.string(),
-      data: z.unknown(),
-    }),
-  ),
-});
-
-export type A2AMessage = z.infer<typeof A2AMessageSchema>;
