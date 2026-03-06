@@ -59,7 +59,7 @@ export default async function BillingPage() {
     .select('*')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
-    .limit(20);
+    .limit(50);
 
   // Get usage data for all periods
   const [usage7d, usage30d, usage90d] = await Promise.all([
