@@ -2,10 +2,8 @@ import { NextRequest } from 'next/server';
 import { CreateTaskSchema } from '@nexus-protocol/shared';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { successResponse, errorResponse } from '@/lib/api-utils';
-import { forwardToAgent } from '@/lib/agent-forwarder';
 import { checkTimeout } from '@/lib/task-timeout';
-import { emitTrustEvent, getTaskCompletedScore, SCORE_TASK_FAILED, SCORE_SLA_BREACH } from '@/lib/trust-events';
-import { settleTask } from '@/lib/billing';
+import { processTaskAsync } from '@/lib/task-processor';
 import type { A2AMessage } from '@nexus-protocol/shared';
 
 async function getSystemAgentId(supabase: ReturnType<typeof getSupabaseAdmin>): Promise<string> {
@@ -68,98 +66,26 @@ export async function POST(request: NextRequest) {
       parts: [{ type: 'text', data: JSON.stringify(input.input) }],
     };
 
-    // Forward to agent synchronously
-    try {
-      const result = await forwardToAgent(agent.endpoint as string, task.id as string, userMessage);
+    // Get agent price for billing settlement
+    const price = Number(
+      (await supabase.from('agents').select('price_per_task').eq('id', input.assignedAgentId).single())
+        .data?.price_per_task ?? 0,
+    );
 
-      const now = new Date().toISOString();
-      await supabase
-        .from('tasks')
-        .update({
-          status: result.status === 'completed' ? 'completed' : 'running',
-          messages: result.messages ?? [],
-          artifacts: result.artifacts ?? [],
-          output: result.artifacts?.[0]?.parts?.[0]?.data
-            ? { result: result.artifacts[0].parts[0].data }
-            : null,
-          completed_at: result.status === 'completed' ? now : null,
-        })
-        .eq('id', task.id);
+    // Process task asynchronously (forward to agent, settle billing, emit trust events)
+    processTaskAsync({
+      supabase,
+      taskId: task.id as string,
+      taskCreatedAt: task.created_at as string,
+      agentEndpoint: agent.endpoint as string,
+      assignedAgentId: input.assignedAgentId,
+      requesterAgentId,
+      message: userMessage,
+      cost: price,
+    });
 
-      // Emit trust events
-      const responseMs = Date.now() - new Date(task.created_at as string).getTime();
-      const SLA_MS = 5 * 60 * 1000;
-
-      if (result.status === 'completed') {
-        await emitTrustEvent(supabase, {
-          agentId: input.assignedAgentId,
-          eventType: 'task_completed',
-          score: getTaskCompletedScore(responseMs),
-          reason: `Task completed in ${Math.round(responseMs / 1000)}s`,
-          taskId: task.id as string,
-        });
-        if (responseMs > SLA_MS) {
-          await emitTrustEvent(supabase, {
-            agentId: input.assignedAgentId,
-            eventType: 'sla_breach',
-            score: SCORE_SLA_BREACH,
-            reason: `Response time ${Math.round(responseMs / 1000)}s exceeded 5m SLA`,
-            taskId: task.id as string,
-          });
-        }
-
-        // Settle billing
-        try {
-          const { data: pricedAgent } = await supabase
-            .from('agents')
-            .select('price_per_task')
-            .eq('id', input.assignedAgentId)
-            .single();
-          const price = Number(pricedAgent?.price_per_task ?? 0);
-          if (price > 0) {
-            await settleTask(supabase, task.id as string, requesterAgentId, input.assignedAgentId, price);
-          }
-        } catch (billingErr) {
-          console.error('Billing settlement failed (non-fatal):', billingErr);
-        }
-      }
-
-      // Re-fetch updated task
-      const { data: updated } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('id', task.id)
-        .single();
-
-      return successResponse(updated ?? task, 201);
-    } catch (fwdErr) {
-      // Forward failed — mark task as failed
-      const errMsg = fwdErr instanceof Error ? fwdErr.message : String(fwdErr);
-      await supabase
-        .from('tasks')
-        .update({
-          status: 'failed',
-          error_message: errMsg,
-          completed_at: new Date().toISOString(),
-        })
-        .eq('id', task.id);
-
-      await emitTrustEvent(supabase, {
-        agentId: input.assignedAgentId,
-        eventType: 'task_failed',
-        score: SCORE_TASK_FAILED,
-        reason: `Task failed: ${errMsg}`,
-        taskId: task.id as string,
-      });
-
-      const { data: failedTask } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('id', task.id)
-        .single();
-
-      return successResponse(failedTask ?? task, 201);
-    }
+    // Return immediately — clients should poll GET /tasks/:id or use SSE /tasks/:id/stream
+    return successResponse(task, 202);
   } catch (err) {
     return errorResponse(err);
   }
