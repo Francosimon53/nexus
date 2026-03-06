@@ -248,19 +248,28 @@ export async function executeWorkflow(
   const requesterAgentId = await getSystemAgentId(supabase);
 
   while (completedIndices.size + failedIndices.size < steps.length) {
-    const ready = getReadySteps(steps, completedIndices, new Set());
+    const runningIndices = new Set<number>();
+    const ready = getReadySteps(steps, completedIndices, runningIndices);
     if (ready.length === 0) break; // Deadlock or all done
 
-    // Execute ready steps sequentially (could be parallelized in future)
-    for (const idx of ready) {
-      const result = await executeStep(
-        supabase,
-        steps[idx]!,
-        idx,
-        runId,
-        stepResults,
-        requesterAgentId,
-      );
+    // Execute independent steps in parallel
+    for (const idx of ready) runningIndices.add(idx);
+
+    const settled = await Promise.allSettled(
+      ready.map((idx) =>
+        executeStep(supabase, steps[idx]!, idx, runId, stepResults, requesterAgentId)
+          .then((result) => ({ idx, result })),
+      ),
+    );
+
+    for (const outcome of settled) {
+      const { idx, result } =
+        outcome.status === 'fulfilled'
+          ? outcome.value
+          : { idx: -1, result: null };
+
+      if (!result || idx === -1) continue;
+
       stepResults[idx] = result;
 
       if (result.status === 'completed') {
@@ -269,7 +278,7 @@ export async function executeWorkflow(
         failedIndices.add(idx);
         // Mark downstream steps as skipped
         for (let j = 0; j < steps.length; j++) {
-          if (steps[j]!.dependsOn?.includes(idx) && !completedIndices.has(j)) {
+          if (steps[j]!.dependsOn?.includes(idx) && !completedIndices.has(j) && !failedIndices.has(j)) {
             const existing = stepResults[j]!;
             stepResults[j] = {
               ...existing,
@@ -281,13 +290,13 @@ export async function executeWorkflow(
           }
         }
       }
-
-      // Update step_results progressively
-      await supabase
-        .from('workflow_runs')
-        .update({ step_results: stepResults })
-        .eq('id', runId);
     }
+
+    // Update step_results progressively
+    await supabase
+      .from('workflow_runs')
+      .update({ step_results: stepResults })
+      .eq('id', runId);
   }
 
   // Determine final status
