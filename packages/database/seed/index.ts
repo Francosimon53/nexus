@@ -78,22 +78,35 @@ const demoAgents = [
     metadata: { version: '1.0.0', model: 'claude-sonnet-4-5-20250929', runtime: 'node' },
   },
   {
-    name: 'HIPAA Classifier',
-    description: 'Classifies documents for HIPAA-sensitive content and flags PHI.',
-    endpoint: 'http://localhost:4102',
-    status: 'offline' as const,
+    name: 'VLayer HIPAA Scanner',
+    description:
+      'Scans code and GitHub repos for HIPAA compliance violations. Detects PHI exposure, missing encryption, insecure endpoints, and 163+ rules.',
+    endpoint: process.env['VLAYER_AGENT_ENDPOINT'] ?? 'http://localhost:4003',
+    status: 'online' as const,
     skills: [
       {
-        id: 'classify-hipaa',
-        name: 'HIPAA Classification',
-        description: 'Scans text for PHI and HIPAA compliance issues',
-        tags: ['compliance', 'healthcare', 'classification'],
+        id: 'hipaa-scan',
+        name: 'HIPAA Scan',
+        description: 'Full HIPAA compliance scan of a codebase',
+        tags: ['hipaa', 'compliance', 'healthcare', 'security'],
+      },
+      {
+        id: 'phi-detection',
+        name: 'PHI Detection',
+        description: 'Detect exposed Protected Health Information',
+        tags: ['hipaa', 'phi', 'healthcare'],
+      },
+      {
+        id: 'compliance-audit',
+        name: 'Compliance Audit',
+        description: 'Generate HIPAA compliance audit report',
+        tags: ['hipaa', 'compliance', 'audit'],
       },
     ],
-    tags: ['compliance', 'healthcare', 'hipaa'],
+    tags: ['hipaa', 'compliance', 'healthcare', 'security'],
     trust_score: 90,
-    price_per_task: 0,
-    metadata: { version: '1.2.0', certified: true },
+    price_per_task: 50,
+    metadata: { version: '1.0.0', provider: 'vlayer', runtime: 'node' },
   },
 ];
 
