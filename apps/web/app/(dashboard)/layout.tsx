@@ -10,7 +10,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         userEmail={user?.email ?? null}
         userName={user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? null}
       />
-      <main className="flex-1 p-8">{children}</main>
+      <main className="flex-1 p-4 pt-16 md:p-8 md:pt-8">{children}</main>
     </div>
   );
 }

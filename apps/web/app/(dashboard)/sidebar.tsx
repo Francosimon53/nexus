@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
+import { useState } from 'react';
 
 const navItems = [
   { label: 'Agents', href: '/agents' },
@@ -20,6 +21,7 @@ interface SidebarProps {
 export function Sidebar({ userEmail, userName }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   async function handleLogout() {
     const supabase = createBrowserClient(
@@ -33,9 +35,9 @@ export function Sidebar({ userEmail, userName }: SidebarProps) {
 
   const displayName = userName || userEmail?.split('@')[0] || 'User';
 
-  return (
-    <aside className="flex w-56 flex-col border-r border-border bg-surface-raised p-4">
-      <Link href="/" className="mb-8 block text-lg font-bold text-nexus-400">
+  const sidebarContent = (
+    <>
+      <Link href="/" className="mb-8 block text-lg font-bold text-nexus-400" onClick={() => setMobileOpen(false)}>
         NEXUS
       </Link>
       <nav className="flex flex-col gap-1">
@@ -45,6 +47,7 @@ export function Sidebar({ userEmail, userName }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setMobileOpen(false)}
               className={`rounded-md px-3 py-2 text-sm transition-colors ${
                 isActive
                   ? 'bg-nexus-600/15 text-nexus-400'
@@ -60,6 +63,7 @@ export function Sidebar({ userEmail, userName }: SidebarProps) {
       <div className="pt-4">
         <Link
           href="/marketplace"
+          onClick={() => setMobileOpen(false)}
           className="rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-surface-overlay hover:text-text-primary transition-colors flex items-center gap-1.5"
         >
           Marketplace
@@ -82,6 +86,52 @@ export function Sidebar({ userEmail, userName }: SidebarProps) {
           Sign out
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile header bar */}
+      <div className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between border-b border-border bg-surface-raised px-4 py-3 md:hidden">
+        <Link href="/" className="text-lg font-bold text-nexus-400">NEXUS</Link>
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="rounded-md p-1.5 text-text-secondary hover:bg-surface-overlay hover:text-text-primary transition-colors"
+          aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+        >
+          {mobileOpen ? (
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M5 5l10 10M15 5L5 15" />
+            </svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 5h14M3 10h14M3 15h14" />
+            </svg>
+          )}
+        </button>
+      </div>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <aside
+        className={`fixed top-0 left-0 z-50 flex h-full w-64 flex-col border-r border-border bg-surface-raised p-4 transition-transform duration-200 md:hidden ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex w-56 flex-col border-r border-border bg-surface-raised p-4">
+        {sidebarContent}
+      </aside>
+    </>
   );
 }
