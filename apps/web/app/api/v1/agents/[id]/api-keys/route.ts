@@ -3,7 +3,8 @@ import { CreateApiKeySchema } from '@nexus-protocol/shared';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { successResponse, errorResponse } from '@/lib/api-utils';
 import { generateApiKey } from '@/lib/api-key-utils';
-import { AgentNotFoundError, ValidationError } from '@nexus-protocol/shared';
+import { AgentNotFoundError, ForbiddenError, ValidationError } from '@nexus-protocol/shared';
+import { requireApiUser } from '@/lib/api-auth';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -14,6 +15,8 @@ export async function POST(
   try {
     const { id: agentId } = await params;
     if (!UUID_RE.test(agentId)) return errorResponse(new ValidationError('Invalid agent ID'));
+
+    const userId = await requireApiUser();
 
     const body = await request.json();
     const input = CreateApiKeySchema.parse(body);
@@ -28,6 +31,11 @@ export async function POST(
       .single();
 
     if (agentErr || !agent) return errorResponse(new AgentNotFoundError(agentId));
+
+    // Verify the requesting user owns this agent
+    if (agent.owner_user_id !== userId) {
+      return errorResponse(new ForbiddenError('You do not own this agent'));
+    }
 
     const { rawKey, prefix, hash } = generateApiKey();
 
@@ -67,6 +75,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const userId = await requireApiUser();
+
     const { id: agentId } = await params;
     if (!UUID_RE.test(agentId)) return errorResponse(new ValidationError('Invalid agent ID'));
 
@@ -80,6 +90,11 @@ export async function GET(
       .single();
 
     if (agentErr || !agent) return errorResponse(new AgentNotFoundError(agentId));
+
+    // Verify the requesting user owns this agent
+    if (agent.owner_user_id !== userId) {
+      return errorResponse(new ForbiddenError('You do not own this agent'));
+    }
 
     // List keys for this agent's owner (never return hash)
     const { data: keys, error } = await supabase
