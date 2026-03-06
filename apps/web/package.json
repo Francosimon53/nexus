@@ -14,22 +14,22 @@
     "@nexus-protocol/protocol": "workspace:*",
     "@nexus-protocol/shared": "workspace:*",
     "@supabase/ssr": "^0.5.2",
-    "@supabase/supabase-js": "^2.47.12",
-    "next": "^15.1.6",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "@supabase/supabase-js": "^2.98.0",
+    "next": "^15.5.12",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "react-markdown": "^10.1.0",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
     "stripe": "^20.4.0",
-    "zod": "^3.24.0"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.0.6",
-    "@types/node": "^22.12.0",
-    "@types/react": "^19.0.8",
-    "@types/react-dom": "^19.0.3",
-    "tailwindcss": "^4.0.6",
-    "typescript": "^5.7.3"
+    "@tailwindcss/postcss": "^4.2.1",
+    "@types/node": "^22.19.15",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.9.3"
   }
 }

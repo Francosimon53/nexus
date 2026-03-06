@@ -9,13 +9,13 @@ importers:
   .:
     devDependencies:
       prettier:
-        specifier: ^3.4.2
+        specifier: ^3.8.1
         version: 3.8.1
       turbo:
-        specifier: ^2.3.3
-        version: 2.8.13
+        specifier: ^2.8.14
+        version: 2.8.14
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.9.3
         version: 5.9.3
 
   apps/web:
@@ -30,16 +30,16 @@ importers:
         specifier: ^0.5.2
         version: 0.5.2(@supabase/supabase-js@2.98.0)
       '@supabase/supabase-js':
-        specifier: ^2.47.12
+        specifier: ^2.98.0
         version: 2.98.0
       next:
-        specifier: ^15.1.6
+        specifier: ^15.5.12
         version: 15.5.12(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
-        specifier: ^19.0.0
+        specifier: ^19.2.4
         version: 19.2.4
       react-dom:
-        specifier: ^19.0.0
+        specifier: ^19.2.4
         version: 19.2.4(react@19.2.4)
       react-markdown:
         specifier: ^10.1.0
@@ -52,28 +52,28 @@ importers:
         version: 4.0.1
       stripe:
         specifier: ^20.4.0
-        version: 20.4.0(@types/node@22.19.13)
+        version: 20.4.0(@types/node@22.19.15)
       zod:
-        specifier: ^3.24.0
+        specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
       '@tailwindcss/postcss':
-        specifier: ^4.0.6
+        specifier: ^4.2.1
         version: 4.2.1
       '@types/node':
-        specifier: ^22.12.0
-        version: 22.19.13
+        specifier: ^22.19.15
+        version: 22.19.15
       '@types/react':
-        specifier: ^19.0.8
+        specifier: ^19.2.14
         version: 19.2.14
       '@types/react-dom':
-        specifier: ^19.0.3
+        specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.14)
       tailwindcss:
-        specifier: ^4.0.6
+        specifier: ^4.2.1
         version: 4.2.1
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.9.3
         version: 5.9.3
 
   examples/echo-agent:
@@ -83,13 +83,13 @@ importers:
         version: link:../../packages/shared
     devDependencies:
       '@types/node':
-        specifier: ^22.12.0
-        version: 22.19.13
+        specifier: ^22.19.15
+        version: 22.19.15
       tsx:
-        specifier: ^4.19.2
+        specifier: ^4.21.0
         version: 4.21.0
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.9.3
         version: 5.9.3
 
   examples/openclaw-adapter:
@@ -99,13 +99,13 @@ importers:
         version: link:../../packages/shared
     devDependencies:
       '@types/node':
-        specifier: ^22.12.0
-        version: 22.19.13
+        specifier: ^22.19.15
+        version: 22.19.15
       tsx:
-        specifier: ^4.19.2
+        specifier: ^4.21.0
         version: 4.21.0
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.9.3
         version: 5.9.3
 
   examples/secureagent-agent:
@@ -115,13 +115,13 @@ importers:
         version: link:../../packages/shared
     devDependencies:
       '@types/node':
-        specifier: ^22.12.0
-        version: 22.19.13
+        specifier: ^22.19.15
+        version: 22.19.15
       tsx:
-        specifier: ^4.19.2
+        specifier: ^4.21.0
         version: 4.21.0
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.9.3
         version: 5.9.3
 
   examples/summarize-agent:
@@ -134,13 +134,13 @@ importers:
         version: link:../../packages/shared
     devDependencies:
       '@types/node':
-        specifier: ^22.12.0
-        version: 22.19.13
+        specifier: ^22.19.15
+        version: 22.19.15
       tsx:
-        specifier: ^4.19.2
+        specifier: ^4.21.0
         version: 4.21.0
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.9.3
         version: 5.9.3
 
   examples/vlayer-agent:
@@ -150,35 +150,35 @@ importers:
         version: link:../../packages/shared
     devDependencies:
       '@types/node':
-        specifier: ^22.12.0
-        version: 22.19.13
+        specifier: ^22.19.15
+        version: 22.19.15
       tsx:
-        specifier: ^4.19.2
+        specifier: ^4.21.0
         version: 4.21.0
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/database:
     dependencies:
       '@supabase/supabase-js':
-        specifier: ^2.47.12
+        specifier: ^2.98.0
         version: 2.98.0
     devDependencies:
       '@types/node':
-        specifier: ^22.12.0
-        version: 22.19.13
+        specifier: ^22.19.15
+        version: 22.19.15
       tsx:
-        specifier: ^4.19.2
+        specifier: ^4.21.0
         version: 4.21.0
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/mcp-server:
     dependencies:
       '@modelcontextprotocol/sdk':
-        specifier: ^1.27.0
+        specifier: ^1.27.1
         version: 1.27.1(zod@3.25.76)
       '@nexus-protocol/database':
         specifier: workspace:*
@@ -187,20 +187,20 @@ importers:
         specifier: workspace:*
         version: link:../shared
       '@supabase/supabase-js':
-        specifier: ^2.47.12
+        specifier: ^2.98.0
         version: 2.98.0
       zod:
-        specifier: ^3.24.1
+        specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
       '@types/node':
-        specifier: ^22.12.0
-        version: 22.19.13
+        specifier: ^22.19.15
+        version: 22.19.15
       tsx:
-        specifier: ^4.19.2
+        specifier: ^4.21.0
         version: 4.21.0
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/protocol:
@@ -209,14 +209,14 @@ importers:
         specifier: workspace:*
         version: link:../shared
       '@supabase/supabase-js':
-        specifier: ^2.47.12
+        specifier: ^2.98.0
         version: 2.98.0
     devDependencies:
       '@types/node':
-        specifier: ^22.12.0
-        version: 22.19.13
+        specifier: ^22.19.15
+        version: 22.19.15
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/sdk:
@@ -226,23 +226,23 @@ importers:
         version: link:../shared
     devDependencies:
       '@types/node':
-        specifier: ^22.12.0
-        version: 22.19.13
+        specifier: ^22.19.15
+        version: 22.19.15
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/shared:
     dependencies:
       zod:
-        specifier: ^3.24.1
+        specifier: ^3.25.76
         version: 3.25.76
     devDependencies:
       '@types/node':
-        specifier: ^22.12.0
-        version: 22.19.13
+        specifier: ^22.19.15
+        version: 22.19.15
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.9.3
         version: 5.9.3
 
 packages:
@@ -413,8 +413,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@hono/node-server@1.19.10':
-    resolution: {integrity: sha512-hZ7nOssGqRgyV3FVVQdfi+U4q02uB23bpnYpdvNXkYTRRyWx84b7yf1ans+dnJ/7h41sGL3CeQTfO+ZGxuO+Iw==}
+  '@hono/node-server@1.19.11':
+    resolution: {integrity: sha512-dr8/3zEaB+p0D2n/IUrlPF1HZm586qgJNXK1a9fhg/PzdtkK7Ksd5l312tJX2yBuALqDYBlG20QEbayqPyxn+g==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
@@ -780,8 +780,8 @@ packages:
   '@types/node@18.19.130':
     resolution: {integrity: sha512-GRaXQx6jGfL8sKfaIDD6OupbIHBr9jv7Jnaml9tB7l4v068PAOXqfcujMMo5PhbIs6ggR1XODELqahT2R8v0fg==}
 
-  '@types/node@22.19.13':
-    resolution: {integrity: sha512-akNQMv0wW5uyRpD2v2IEyRSZiR+BeGuoB6L310EgGObO44HSMNT8z1xzio28V8qOrgYaopIDNA18YgdXd+qTiw==}
+  '@types/node@22.19.15':
+    resolution: {integrity: sha512-F0R/h2+dsy5wJAUe3tAU6oqa2qbWY5TpNfL/RGmo1y38hiyO1w3x2jPtt76wmuaJI4DQnOBu21cNXQ2STIUUWg==}
 
   '@types/phoenix@1.6.7':
     resolution: {integrity: sha512-oN9ive//QSBkf19rfDv45M7eZPi0eEXylht2OLEXicu5b4KoQ1OzXIw+xDSGWxSxe1JmepRR/ZH283vsu518/Q==}
@@ -851,8 +851,8 @@ packages:
     resolution: {integrity: sha512-+ys997U96po4Kx/ABpBCqhA9EuxJaQWDQg7295H4hBphv3IZg0boBKuwYpt4YXp6MZ5AmZQnU/tyMTlRpaSejg==}
     engines: {node: '>= 0.4'}
 
-  caniuse-lite@1.0.30001776:
-    resolution: {integrity: sha512-sg01JDPzZ9jGshqKSckOQthXnYwOEP50jeVFhaSFbZcOy05TiuuaffDOfcwtCisJ9kNQuLBFibYywv2Bgm9osw==}
+  caniuse-lite@1.0.30001777:
+    resolution: {integrity: sha512-tmN+fJxroPndC74efCdp12j+0rk0RHwV5Jwa1zWaFVyw2ZxAuPeG8ZgWC3Wz7uSjT3qMRQ5XHZ4COgQmsCMJAQ==}
 
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
@@ -1003,8 +1003,8 @@ packages:
     resolution: {integrity: sha512-CRT1WTyuQoD771GW56XEZFQ/ZoSfWid1alKGDYMmkt2yl8UXrVR4pspqWNEcqKvVIzg6PAltWjxcSSPrboA4iA==}
     engines: {node: '>=18.0.0'}
 
-  express-rate-limit@8.2.1:
-    resolution: {integrity: sha512-PCZEIEIxqwhzw4KF0n7QF4QqruVTcF73O5kFKUnGOyjbCCgizBBiFaYpd/fnBLUMPw/BWw9OsiN7GgrNYr7j6g==}
+  express-rate-limit@8.3.0:
+    resolution: {integrity: sha512-KJzBawY6fB9FiZGdE/0aftepZ91YlaGIrV8vgblRM3J8X+dHx/aiowJWwkx6LIGyuqGiANsjSwwrbb8mifOJ4Q==}
     engines: {node: '>= 16'}
     peerDependencies:
       express: '>= 4.11'
@@ -1104,8 +1104,8 @@ packages:
   hastscript@9.0.1:
     resolution: {integrity: sha512-g7df9rMFX/SPi34tyGCyUBREQoKkapwdY/T04Qn9TDWfHhAYt4/I0gMVirzK5wEzeUqIjEB+LXC/ypb7Aqno5w==}
 
-  hono@4.12.4:
-    resolution: {integrity: sha512-ooiZW1Xy8rQ4oELQ++otI2T9DsKpV0M6c6cO6JGx4RTfav9poFFLlet9UMXHZnoM1yG0HWGlQLswBGX3RZmHtg==}
+  hono@4.12.5:
+    resolution: {integrity: sha512-3qq+FUBtlTHhtYxbxheZgY8NIFnkkC/MR8u5TTsr7YZ3wixryQ3cCwn3iZbg8p8B88iDBBAYSfZDS75t8MN7Vg==}
     engines: {node: '>=16.9.0'}
 
   html-url-attributes@3.0.1:
@@ -1135,8 +1135,8 @@ packages:
   inline-style-parser@0.2.7:
     resolution: {integrity: sha512-Nb2ctOyNR8DqQoR0OwRG95uNWIC0C1lCgf5Naz5H6Ji72KZ8OcFZLz2P5sNgwlyoJ8Yif11oMuYs5pBQa86csA==}
 
-  ip-address@10.0.1:
-    resolution: {integrity: sha512-NWv9YLW4PoW2B7xtzaS3NCot75m6nK7Icdv0o3lfMceJVRfSoQwqD4wEH5rLwoKJwUiZ/rfpiVBhnaF0FK4HoA==}
+  ip-address@10.1.0:
+    resolution: {integrity: sha512-XXADHxXmvT9+CRxhXg56LJovE+bmWnEWB78LB83VZTprKTmaC5QfruXocxzTZ2Kl0DNwKuBdlIhjL8LeY8Sf8Q==}
     engines: {node: '>= 12'}
 
   ipaddr.js@1.9.1:
@@ -1169,8 +1169,8 @@ packages:
     resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
     hasBin: true
 
-  jose@6.1.3:
-    resolution: {integrity: sha512-0TpaTfihd4QMNwrz/ob2Bp7X04yuxJkjRGi4aKmOqwhov54i6u79oCv7T+C7lo70MKH6BesI3vscD1yb/yzKXQ==}
+  jose@6.2.0:
+    resolution: {integrity: sha512-xsfE1TcSCbUdo6U07tR0mvhg0flGxU8tPLbF03mirl2ukGQENhUg4ubGYQnhVH0b5stLlPM+WOqDkEl1R1y5sQ==}
 
   json-schema-traverse@1.0.0:
     resolution: {integrity: sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==}
@@ -1693,38 +1693,38 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  turbo-darwin-64@2.8.13:
-    resolution: {integrity: sha512-PmOvodQNiOj77+Zwoqku70vwVjKzL34RTNxxoARjp5RU5FOj/CGiC6vcDQhNtFPUOWSAaogHF5qIka9TBhX4XA==}
+  turbo-darwin-64@2.8.14:
+    resolution: {integrity: sha512-9sFi7n2lLfEsGWi5OEoA/eTtQU2BPKtzSYKqufMtDeRmqMT9vKjbv9gJCRkllSVE9BOXA0qXC3diyX8V8rKIKw==}
     cpu: [x64]
     os: [darwin]
 
-  turbo-darwin-arm64@2.8.13:
-    resolution: {integrity: sha512-kI+anKcLIM4L8h+NsM7mtAUpElkCOxv5LgiQVQR8BASyDFfc8Efj5kCk3cqxuxOvIqx0sLfCX7atrHQ2kwuNJQ==}
+  turbo-darwin-arm64@2.8.14:
+    resolution: {integrity: sha512-aS4yJuy6A1PCLws+PJpZP0qCURG8Y5iVx13z/WAbKyeDTY6W6PiGgcEllSaeLGxyn++382ztN/EZH85n2zZ6VQ==}
     cpu: [arm64]
     os: [darwin]
 
-  turbo-linux-64@2.8.13:
-    resolution: {integrity: sha512-j29KnQhHyzdzgCykBFeBqUPS4Wj7lWMnZ8CHqytlYDap4Jy70l4RNG46pOL9+lGu6DepK2s1rE86zQfo0IOdPw==}
+  turbo-linux-64@2.8.14:
+    resolution: {integrity: sha512-XC6wPUDJkakjhNLaS0NrHDMiujRVjH+naEAwvKLArgqRaFkNxjmyNDRM4eu3soMMFmjym6NTxYaF74rvET+Orw==}
     cpu: [x64]
     os: [linux]
 
-  turbo-linux-arm64@2.8.13:
-    resolution: {integrity: sha512-OEl1YocXGZDRDh28doOUn49QwNe82kXljO1HXApjU0LapkDiGpfl3jkAlPKxEkGDSYWc8MH5Ll8S16Rf5tEBYg==}
+  turbo-linux-arm64@2.8.14:
+    resolution: {integrity: sha512-ChfE7isyVNjZrVSPDwcfqcHLG/FuIBbOFxnt1FM8vSuBGzHAs8AlTdwFNIxlEMJfZ8Ad9mdMxdmsCUPIWiQ6cg==}
     cpu: [arm64]
     os: [linux]
 
-  turbo-windows-64@2.8.13:
-    resolution: {integrity: sha512-717bVk1+Pn2Jody7OmWludhEirEe0okoj1NpRbSm5kVZz/yNN/jfjbxWC6ilimXMz7xoMT3IDfQFJsFR3PMANA==}
+  turbo-windows-64@2.8.14:
+    resolution: {integrity: sha512-FTbIeQL1ycLFW2t9uQNMy+bRSzi3Xhwun/e7ZhFBdM+U0VZxxrtfYEBM9CHOejlfqomk6Jh7aRz0sJoqYn39Hg==}
     cpu: [x64]
     os: [win32]
 
-  turbo-windows-arm64@2.8.13:
-    resolution: {integrity: sha512-R819HShLIT0Wj6zWVnIsYvSNtRNj1q9VIyaUz0P24SMcLCbQZIm1sV09F4SDbg+KCCumqD2lcaR2UViQ8SnUJA==}
+  turbo-windows-arm64@2.8.14:
+    resolution: {integrity: sha512-KgZX12cTyhY030qS7ieT8zRkhZZE2VWJasDFVUSVVn17nR7IShpv68/7j5UqJNeRLIGF1XPK0phsP5V5yw3how==}
     cpu: [arm64]
     os: [win32]
 
-  turbo@2.8.13:
-    resolution: {integrity: sha512-nyM99hwFB9/DHaFyKEqatdayGjsMNYsQ/XBNO6MITc7roncZetKb97MpHxWf3uiU+LB9c9HUlU3Jp2Ixei2k1A==}
+  turbo@2.8.14:
+    resolution: {integrity: sha512-UCTxeMNYT1cKaHiIFdLCQ7ulI+jw5i5uOnJOrRXsgUD7G3+OjlUjwVd7JfeVt2McWSVGjYA3EVW/v1FSsJ5DtA==}
     hasBin: true
 
   type-is@2.0.1:
@@ -1920,9 +1920,9 @@ snapshots:
   '@esbuild/win32-x64@0.27.3':
     optional: true
 
-  '@hono/node-server@1.19.10(hono@4.12.4)':
+  '@hono/node-server@1.19.11(hono@4.12.5)':
     dependencies:
-      hono: 4.12.4
+      hono: 4.12.5
 
   '@img/colour@1.1.0':
     optional: true
@@ -2042,7 +2042,7 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.27.1(zod@3.25.76)':
     dependencies:
-      '@hono/node-server': 1.19.10(hono@4.12.4)
+      '@hono/node-server': 1.19.11(hono@4.12.5)
       ajv: 8.18.0
       ajv-formats: 3.0.1(ajv@8.18.0)
       content-type: 1.0.5
@@ -2051,9 +2051,9 @@ snapshots:
       eventsource: 3.0.7
       eventsource-parser: 3.0.6
       express: 5.2.1
-      express-rate-limit: 8.2.1(express@5.2.1)
-      hono: 4.12.4
-      jose: 6.1.3
+      express-rate-limit: 8.3.0(express@5.2.1)
+      hono: 4.12.5
+      jose: 6.2.0
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
@@ -2229,14 +2229,14 @@ snapshots:
 
   '@types/node-fetch@2.6.13':
     dependencies:
-      '@types/node': 22.19.13
+      '@types/node': 22.19.15
       form-data: 4.0.5
 
   '@types/node@18.19.130':
     dependencies:
       undici-types: 5.26.5
 
-  '@types/node@22.19.13':
+  '@types/node@22.19.15':
     dependencies:
       undici-types: 6.21.0
 
@@ -2256,7 +2256,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 22.19.13
+      '@types/node': 22.19.15
 
   '@ungap/structured-clone@1.3.0': {}
 
@@ -2314,7 +2314,7 @@ snapshots:
       call-bind-apply-helpers: 1.0.2
       get-intrinsic: 1.3.0
 
-  caniuse-lite@1.0.30001776: {}
+  caniuse-lite@1.0.30001777: {}
 
   ccount@2.0.1: {}
 
@@ -2452,10 +2452,10 @@ snapshots:
     dependencies:
       eventsource-parser: 3.0.6
 
-  express-rate-limit@8.2.1(express@5.2.1):
+  express-rate-limit@8.3.0(express@5.2.1):
     dependencies:
       express: 5.2.1
-      ip-address: 10.0.1
+      ip-address: 10.1.0
 
   express@5.2.1:
     dependencies:
@@ -2640,7 +2640,7 @@ snapshots:
       property-information: 7.1.0
       space-separated-tokens: 2.0.2
 
-  hono@4.12.4: {}
+  hono@4.12.5: {}
 
   html-url-attributes@3.0.1: {}
 
@@ -2668,7 +2668,7 @@ snapshots:
 
   inline-style-parser@0.2.7: {}
 
-  ip-address@10.0.1: {}
+  ip-address@10.1.0: {}
 
   ipaddr.js@1.9.1: {}
 
@@ -2691,7 +2691,7 @@ snapshots:
 
   jiti@2.6.1: {}
 
-  jose@6.1.3: {}
+  jose@6.2.0: {}
 
   json-schema-traverse@1.0.0: {}
 
@@ -3126,7 +3126,7 @@ snapshots:
     dependencies:
       '@next/env': 15.5.12
       '@swc/helpers': 0.5.15
-      caniuse-lite: 1.0.30001776
+      caniuse-lite: 1.0.30001777
       postcss: 8.4.31
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
@@ -3411,9 +3411,9 @@ snapshots:
       character-entities-html4: 2.1.0
       character-entities-legacy: 3.0.0
 
-  stripe@20.4.0(@types/node@22.19.13):
+  stripe@20.4.0(@types/node@22.19.15):
     optionalDependencies:
-      '@types/node': 22.19.13
+      '@types/node': 22.19.15
 
   style-to-js@1.1.21:
     dependencies:
@@ -3449,32 +3449,32 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  turbo-darwin-64@2.8.13:
+  turbo-darwin-64@2.8.14:
     optional: true
 
-  turbo-darwin-arm64@2.8.13:
+  turbo-darwin-arm64@2.8.14:
     optional: true
 
-  turbo-linux-64@2.8.13:
+  turbo-linux-64@2.8.14:
     optional: true
 
-  turbo-linux-arm64@2.8.13:
+  turbo-linux-arm64@2.8.14:
     optional: true
 
-  turbo-windows-64@2.8.13:
+  turbo-windows-64@2.8.14:
     optional: true
 
-  turbo-windows-arm64@2.8.13:
+  turbo-windows-arm64@2.8.14:
     optional: true
 
-  turbo@2.8.13:
+  turbo@2.8.14:
     optionalDependencies:
-      turbo-darwin-64: 2.8.13
-      turbo-darwin-arm64: 2.8.13
-      turbo-linux-64: 2.8.13
-      turbo-linux-arm64: 2.8.13
-      turbo-windows-64: 2.8.13
-      turbo-windows-arm64: 2.8.13
+      turbo-darwin-64: 2.8.14
+      turbo-darwin-arm64: 2.8.14
+      turbo-linux-64: 2.8.14
+      turbo-linux-arm64: 2.8.14
+      turbo-windows-64: 2.8.14
+      turbo-windows-arm64: 2.8.14
 
   type-is@2.0.1:
     dependencies:
