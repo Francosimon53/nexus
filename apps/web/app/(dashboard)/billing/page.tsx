@@ -7,6 +7,7 @@ import { BalanceCard } from './components/balance-card';
 import { BuyCredits } from './components/buy-credits';
 import { TransactionHistory } from './components/transaction-history';
 import { UsageChart } from './components/usage-chart';
+import { PaymentStatus } from './components/payment-status';
 
 async function getUsageForPeriod(supabase: ReturnType<typeof getSupabaseAdmin>, userId: string, days: number) {
   const since = new Date(Date.now() - days * 86400000).toISOString();
@@ -71,6 +72,8 @@ export default async function BillingPage() {
       <p className="text-text-secondary mb-8">Track credits, transactions, and usage across agents.</p>
 
       <div className="space-y-8">
+        <PaymentStatus />
+
         <BalanceCard
           balance={Number(balance.balance)}
           totalEarned={Number(balance.total_earned)}
