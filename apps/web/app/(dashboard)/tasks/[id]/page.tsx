@@ -44,7 +44,7 @@ export default async function TaskDetailPage({
       </div>
 
       {/* Details Grid */}
-      <div className="mb-6 grid grid-cols-2 gap-4">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-lg border border-border bg-surface-raised p-4">
           <h3 className="mb-1 text-xs font-medium text-text-secondary">Assigned Agent</h3>
           <p className="text-sm">{agent?.name ?? 'Unknown'}</p>

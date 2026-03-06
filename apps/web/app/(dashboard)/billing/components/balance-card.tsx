@@ -19,7 +19,7 @@ export function BalanceCard({ balance, totalEarned, totalSpent, totalPurchased }
         {balance.toLocaleString()}
         <span className="ml-2 text-base font-normal text-text-secondary">credits</span>
       </p>
-      <div className="mt-4 grid grid-cols-3 gap-4">
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {stats.map((s) => (
           <div key={s.label}>
             <p className="text-xs text-text-secondary">{s.label}</p>
