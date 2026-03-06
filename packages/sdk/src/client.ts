@@ -4,43 +4,70 @@ import { NexusError } from '@nexus-protocol/shared';
 export interface NexusClientConfig {
   apiKey: string;
   baseUrl?: string;
+  /** Max retries for 5xx / network errors (default 3) */
+  maxRetries?: number;
 }
 
-async function request<T>(
-  baseUrl: string,
-  apiKey: string,
-  method: string,
-  path: string,
-  body?: unknown,
-): Promise<T> {
-  const res = await fetch(`${baseUrl}${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
+const DEFAULT_MAX_RETRIES = 3;
+const RETRY_BASE_MS = 500;
+const RETRYABLE_STATUS = new Set([502, 503, 504, 429]);
 
-  if (!res.ok) {
-    const error = (await res.json().catch(() => ({}))) as {
-      error?: { code?: string; message?: string };
-    };
-    throw new NexusError(
-      (error.error?.code as ConstructorParameters<typeof NexusError>[0]) ?? 'INTERNAL_ERROR',
-      error.error?.message ?? `Request failed: ${res.status}`,
-      res.status,
-    );
-  }
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-  return res.json() as Promise<T>;
+type RequestFn = <T>(method: string, path: string, body?: unknown) => Promise<T>;
+
+function createRequestFn(baseUrl: string, apiKey: string, maxRetries: number): RequestFn {
+  return async <T>(method: string, path: string, body?: unknown): Promise<T> => {
+    let lastError: unknown;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      if (attempt > 0) {
+        await sleep(RETRY_BASE_MS * Math.pow(2, attempt - 1));
+      }
+
+      let res: Response;
+      try {
+        res = await fetch(`${baseUrl}${path}`, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          ...(body ? { body: JSON.stringify(body) } : {}),
+        });
+      } catch (err) {
+        lastError = err;
+        if (attempt < maxRetries) continue;
+        throw new NexusError('INTERNAL_ERROR', `Network error: ${err instanceof Error ? err.message : String(err)}`, 0);
+      }
+
+      if (res.ok) {
+        return res.json() as Promise<T>;
+      }
+
+      if (RETRYABLE_STATUS.has(res.status) && attempt < maxRetries) {
+        lastError = new Error(`HTTP ${res.status}`);
+        continue;
+      }
+
+      const error = (await res.json().catch(() => ({}))) as {
+        error?: { code?: string; message?: string };
+      };
+      throw new NexusError(
+        (error.error?.code as ConstructorParameters<typeof NexusError>[0]) ?? 'INTERNAL_ERROR',
+        error.error?.message ?? `Request failed: ${res.status}`,
+        res.status,
+      );
+    }
+
+    throw lastError ?? new NexusError('INTERNAL_ERROR', 'Request failed after retries', 0);
+  };
 }
 
 export class AgentService {
-  constructor(
-    private baseUrl: string,
-    private apiKey: string,
-  ) {}
+  constructor(private req: RequestFn) {}
 
   async register(data: {
     name: string;
@@ -49,11 +76,11 @@ export class AgentService {
     skills?: Agent['skills'];
     tags?: string[];
   }): Promise<Agent> {
-    return request<Agent>(this.baseUrl, this.apiKey, 'POST', '/v1/agents', data);
+    return this.req<Agent>('POST', '/v1/agents', data);
   }
 
   async get(agentId: string): Promise<Agent> {
-    return request<Agent>(this.baseUrl, this.apiKey, 'GET', `/v1/agents/${agentId}`);
+    return this.req<Agent>('GET', `/v1/agents/${agentId}`);
   }
 
   async discover(params?: { tags?: string[]; status?: string }): Promise<Agent[]> {
@@ -61,29 +88,25 @@ export class AgentService {
     if (params?.tags) query.set('tags', params.tags.join(','));
     if (params?.status) query.set('status', params.status);
     const qs = query.toString();
-    return request<Agent[]>(this.baseUrl, this.apiKey, 'GET', `/v1/agents${qs ? `?${qs}` : ''}`);
+    return this.req<Agent[]>('GET', `/v1/agents${qs ? `?${qs}` : ''}`);
   }
 
   async update(agentId: string, data: Partial<Pick<Agent, 'name' | 'description' | 'endpoint' | 'skills' | 'tags' | 'metadata'>>): Promise<Agent> {
-    return request<Agent>(this.baseUrl, this.apiKey, 'PATCH', `/v1/agents/${agentId}`, data);
+    return this.req<Agent>('PATCH', `/v1/agents/${agentId}`, data);
   }
 
   async delete(agentId: string): Promise<void> {
-    await request<void>(this.baseUrl, this.apiKey, 'DELETE', `/v1/agents/${agentId}`);
+    await this.req<void>('DELETE', `/v1/agents/${agentId}`);
   }
 
   async heartbeat(agentId: string): Promise<{ status: string }> {
-    return request<{ status: string }>(
-      this.baseUrl,
-      this.apiKey,
-      'POST',
-      `/v1/agents/${agentId}/heartbeat`,
-    );
+    return this.req<{ status: string }>('POST', `/v1/agents/${agentId}/heartbeat`);
   }
 }
 
 export class TaskService {
   constructor(
+    private req: RequestFn,
     private baseUrl: string,
     private apiKey: string,
   ) {}
@@ -96,15 +119,15 @@ export class TaskService {
     input?: Record<string, unknown>;
     maxBudgetCredits?: number;
   }): Promise<Task> {
-    return request<Task>(this.baseUrl, this.apiKey, 'POST', '/v1/tasks', data);
+    return this.req<Task>('POST', '/v1/tasks', data);
   }
 
   async get(taskId: string): Promise<Task> {
-    return request<Task>(this.baseUrl, this.apiKey, 'GET', `/v1/tasks/${taskId}`);
+    return this.req<Task>('GET', `/v1/tasks/${taskId}`);
   }
 
   async cancel(taskId: string): Promise<Task> {
-    return request<Task>(this.baseUrl, this.apiKey, 'POST', `/v1/tasks/${taskId}/cancel`);
+    return this.req<Task>('POST', `/v1/tasks/${taskId}/cancel`);
   }
 
   async *stream(taskId: string): AsyncGenerator<{ event: string; data: unknown }> {
@@ -154,29 +177,23 @@ export class TaskService {
 }
 
 export class TrustService {
-  constructor(
-    private baseUrl: string,
-    private apiKey: string,
-  ) {}
+  constructor(private req: RequestFn) {}
 
   async getProfile(agentId: string): Promise<{
     agentId: string;
     trustScore: number;
     recentEvents: TrustEvent[];
   }> {
-    return request(this.baseUrl, this.apiKey, 'GET', `/v1/trust/${agentId}`);
+    return this.req('GET', `/v1/trust/${agentId}`);
   }
 
   async rate(agentId: string, data: { score: number; reason?: string }): Promise<TrustEvent> {
-    return request<TrustEvent>(this.baseUrl, this.apiKey, 'POST', `/v1/trust/${agentId}/rate`, data);
+    return this.req<TrustEvent>('POST', `/v1/trust/${agentId}/rate`, data);
   }
 }
 
 export class BillingService {
-  constructor(
-    private baseUrl: string,
-    private apiKey: string,
-  ) {}
+  constructor(private req: RequestFn) {}
 
   async getBalance(): Promise<{
     user_id: string;
@@ -185,7 +202,7 @@ export class BillingService {
     total_spent: number;
     total_purchased: number;
   }> {
-    return request(this.baseUrl, this.apiKey, 'GET', '/v1/billing/balance');
+    return this.req('GET', '/v1/billing/balance');
   }
 
   async getTransactions(params?: {
@@ -198,7 +215,7 @@ export class BillingService {
     if (params?.offset) query.set('offset', String(params.offset));
     if (params?.type) query.set('type', params.type);
     const qs = query.toString();
-    return request(this.baseUrl, this.apiKey, 'GET', `/v1/billing/transactions${qs ? `?${qs}` : ''}`);
+    return this.req('GET', `/v1/billing/transactions${qs ? `?${qs}` : ''}`);
   }
 
   async getUsage(period?: '7d' | '30d' | '90d'): Promise<{
@@ -208,34 +225,31 @@ export class BillingService {
     totalEarned: number;
   }> {
     const qs = period ? `?period=${period}` : '';
-    return request(this.baseUrl, this.apiKey, 'GET', `/v1/billing/usage${qs}`);
+    return this.req('GET', `/v1/billing/usage${qs}`);
   }
 
   async createCheckout(packageId: CreditPackageId): Promise<{ url: string }> {
-    return request(this.baseUrl, this.apiKey, 'POST', '/v1/billing/checkout', { packageId });
+    return this.req('POST', '/v1/billing/checkout', { packageId });
   }
 }
 
 export class WorkflowService {
-  constructor(
-    private baseUrl: string,
-    private apiKey: string,
-  ) {}
+  constructor(private req: RequestFn) {}
 
   async create(data: CreateWorkflowInput): Promise<Workflow> {
-    return request<Workflow>(this.baseUrl, this.apiKey, 'POST', '/v1/workflows', data);
+    return this.req<Workflow>('POST', '/v1/workflows', data);
   }
 
   async list(): Promise<Workflow[]> {
-    return request<Workflow[]>(this.baseUrl, this.apiKey, 'GET', '/v1/workflows');
+    return this.req<Workflow[]>('GET', '/v1/workflows');
   }
 
   async get(workflowId: string): Promise<Workflow & { runs: WorkflowRun[] }> {
-    return request<Workflow & { runs: WorkflowRun[] }>(this.baseUrl, this.apiKey, 'GET', `/v1/workflows/${workflowId}`);
+    return this.req<Workflow & { runs: WorkflowRun[] }>('GET', `/v1/workflows/${workflowId}`);
   }
 
   async execute(workflowId: string): Promise<WorkflowRun> {
-    return request<WorkflowRun>(this.baseUrl, this.apiKey, 'POST', `/v1/workflows/${workflowId}/execute`);
+    return this.req<WorkflowRun>('POST', `/v1/workflows/${workflowId}/execute`);
   }
 }
 
@@ -248,10 +262,12 @@ export class NexusClient {
 
   constructor(config: NexusClientConfig) {
     const baseUrl = (config.baseUrl ?? 'https://api.nexus-protocol.dev').replace(/\/+$/, '');
-    this.agents = new AgentService(baseUrl, config.apiKey);
-    this.tasks = new TaskService(baseUrl, config.apiKey);
-    this.trust = new TrustService(baseUrl, config.apiKey);
-    this.billing = new BillingService(baseUrl, config.apiKey);
-    this.workflows = new WorkflowService(baseUrl, config.apiKey);
+    const retries = config.maxRetries ?? DEFAULT_MAX_RETRIES;
+    const req = createRequestFn(baseUrl, config.apiKey, retries);
+    this.agents = new AgentService(req);
+    this.tasks = new TaskService(req, baseUrl, config.apiKey);
+    this.trust = new TrustService(req);
+    this.billing = new BillingService(req);
+    this.workflows = new WorkflowService(req);
   }
 }
