@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface UseAgentModalProps {
@@ -17,6 +17,23 @@ export function UseAgentModal({ agentId, agentName, costPerTask, userBalance }: 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [confirming, setConfirming] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  const closeModal = useCallback(() => {
+    setOpen(false);
+    setConfirming(false);
+    setError('');
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') closeModal();
+    }
+    document.addEventListener('keydown', onKeyDown);
+    dialogRef.current?.focus();
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open, closeModal]);
 
   function handleOpen() {
     if (userBalance === null) {
@@ -90,12 +107,12 @@ export function UseAgentModal({ agentId, agentName, costPerTask, userBalance }: 
   const hasEnough = userBalance !== null && userBalance >= costPerTask;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-lg rounded-xl border border-border bg-surface p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={closeModal}>
+      <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" className="w-full max-w-lg rounded-xl border border-border bg-surface p-6 outline-none" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Send Task to {agentName}</h2>
           <button
-            onClick={() => { setOpen(false); setConfirming(false); setError(''); }}
+            onClick={closeModal}
             className="text-text-secondary hover:text-text-primary text-lg"
           >
             &times;
@@ -135,7 +152,7 @@ export function UseAgentModal({ agentId, agentName, costPerTask, userBalance }: 
           </span>
           <div className="flex gap-2">
             <button
-              onClick={() => { setOpen(false); setConfirming(false); setError(''); }}
+              onClick={closeModal}
               disabled={loading}
               className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-primary hover:bg-surface-overlay transition-colors disabled:opacity-50"
             >
@@ -167,6 +184,23 @@ export function TryAgentButton({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [confirming, setConfirming] = useState(false);
+  const tryDialogRef = useRef<HTMLDivElement>(null);
+
+  const closeTryModal = useCallback(() => {
+    setOpen(false);
+    setConfirming(false);
+    setError('');
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') closeTryModal();
+    }
+    document.addEventListener('keydown', onKeyDown);
+    tryDialogRef.current?.focus();
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open, closeTryModal]);
 
   function handleClick(e: React.MouseEvent) {
     e.preventDefault();
@@ -233,11 +267,11 @@ export function TryAgentButton({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={(e) => { e.stopPropagation(); }}>
-          <div className="w-full max-w-lg rounded-xl border border-border bg-surface p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={(e) => { e.stopPropagation(); closeTryModal(); }}>
+          <div ref={tryDialogRef} tabIndex={-1} role="dialog" aria-modal="true" className="w-full max-w-lg rounded-xl border border-border bg-surface p-6 outline-none" onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Try {agentName}</h2>
-              <button onClick={() => { setOpen(false); setConfirming(false); setError(''); }} className="text-text-secondary hover:text-text-primary text-lg">&times;</button>
+              <button onClick={closeTryModal} className="text-text-secondary hover:text-text-primary text-lg">&times;</button>
             </div>
 
             {error && (
@@ -265,7 +299,7 @@ export function TryAgentButton({
             )}
 
             <div className="flex justify-end gap-2">
-              <button onClick={() => { setOpen(false); setConfirming(false); setError(''); }} disabled={loading} className="rounded-lg border border-border px-4 py-2 text-sm text-text-primary hover:bg-surface-overlay transition-colors disabled:opacity-50">Cancel</button>
+              <button onClick={closeTryModal} disabled={loading} className="rounded-lg border border-border px-4 py-2 text-sm text-text-primary hover:bg-surface-overlay transition-colors disabled:opacity-50">Cancel</button>
               <button onClick={handleSubmit} disabled={loading || !message.trim()} className="rounded-lg bg-nexus-600 px-4 py-2 text-sm font-medium text-white hover:bg-nexus-500 transition-colors disabled:opacity-50">
                 {loading ? 'Sending...' : confirming ? 'Confirm' : 'Send'}
               </button>
