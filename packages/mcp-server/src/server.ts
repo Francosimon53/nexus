@@ -229,48 +229,80 @@ export function createNexusMcpServer(): McpServer {
 
       const taskId = task.id as string;
 
-      // Forward to agent
+      // Forward to agent asynchronously — don't block the MCP tool call
       const userMessage: A2AMessage = {
         role: 'user',
         parts: [{ type: 'text', data: JSON.stringify(input) }],
       };
 
-      try {
-        const result = await forwardToAgent(agent.endpoint as string, taskId, userMessage);
+      // Fire-and-forget: forward to agent and update task on completion
+      forwardToAgent(agent.endpoint as string, taskId, userMessage)
+        .then(async (result) => {
+          await db
+            .from('tasks')
+            .update({
+              status: result.status === 'completed' ? 'completed' : 'running',
+              messages: result.messages ?? [],
+              artifacts: result.artifacts ?? [],
+              output: result.artifacts?.[0]?.parts?.[0]?.data
+                ? { result: result.artifacts[0].parts[0].data }
+                : null,
+              completed_at: result.status === 'completed' ? new Date().toISOString() : null,
+            })
+            .eq('id', taskId);
+        })
+        .catch(async (fwdErr) => {
+          const errMsg = fwdErr instanceof Error ? fwdErr.message : String(fwdErr);
+          await db
+            .from('tasks')
+            .update({
+              status: 'failed',
+              error_message: errMsg,
+              completed_at: new Date().toISOString(),
+            })
+            .eq('id', taskId);
+        });
 
-        await db
+      // Poll for completion instead of blocking on the forward call
+      const POLL_INTERVAL_MS = 2000;
+      const deadline = Date.now() + timeout * 1000;
+
+      while (Date.now() < deadline) {
+        await sleep(POLL_INTERVAL_MS);
+
+        const { data: polled } = await db
           .from('tasks')
-          .update({
-            status: result.status === 'completed' ? 'completed' : 'running',
-            messages: result.messages ?? [],
-            artifacts: result.artifacts ?? [],
-            output: result.artifacts?.[0]?.parts?.[0]?.data
-              ? { result: result.artifacts[0].parts[0].data }
-              : null,
-            completed_at: result.status === 'completed' ? new Date().toISOString() : null,
-          })
-          .eq('id', taskId);
+          .select('status, artifacts, error_message')
+          .eq('id', taskId)
+          .single();
 
-        const outputSummary = result.artifacts?.[0]?.parts?.[0]?.data
-          ? JSON.stringify(result.artifacts[0].parts[0].data).slice(0, 500)
-          : '(no output)';
+        if (!polled) break;
 
-        return {
-          content: [{ type: 'text' as const, text: `Task ${taskId} — status: ${result.status}\n\nOutput: ${outputSummary}` }],
-        };
-      } catch (fwdErr) {
-        const errMsg = fwdErr instanceof Error ? fwdErr.message : String(fwdErr);
-        await db
-          .from('tasks')
-          .update({
-            status: 'failed',
-            error_message: errMsg,
-            completed_at: new Date().toISOString(),
-          })
-          .eq('id', taskId);
+        const status = polled.status as string;
+        if (status === 'completed' || status === 'failed' || status === 'timed_out') {
+          if (status === 'failed' || status === 'timed_out') {
+            return {
+              content: [{ type: 'text' as const, text: `Task ${taskId} — ${status}: ${polled.error_message ?? 'unknown error'}` }],
+              isError: true,
+            };
+          }
 
-        return { content: [{ type: 'text' as const, text: `Task ${taskId} — failed to forward to agent: ${errMsg}` }], isError: true };
+          const artifacts = Array.isArray(polled.artifacts) ? polled.artifacts as Array<Record<string, unknown>> : [];
+          const parts = Array.isArray(artifacts[0]?.['parts']) ? artifacts[0]['parts'] as Array<Record<string, unknown>> : [];
+          const outputSummary = parts[0]?.['data']
+            ? JSON.stringify(parts[0]['data']).slice(0, 500)
+            : '(no output)';
+
+          return {
+            content: [{ type: 'text' as const, text: `Task ${taskId} — completed\n\nOutput: ${outputSummary}` }],
+          };
+        }
       }
+
+      // Timeout — task is still running, return the ID so the user can check later
+      return {
+        content: [{ type: 'text' as const, text: `Task ${taskId} — still running after ${timeout}s. Use check_task_status to poll for the result.` }],
+      };
     },
   );
 
