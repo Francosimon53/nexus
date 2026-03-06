@@ -4,15 +4,16 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { ensureCreditBalance } from '@/lib/billing';
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const next = searchParams.get('next') ?? '/agents';
+  const baseUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? new URL(request.url).origin;
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/auth/login?error=missing_code`);
+    return NextResponse.redirect(`${baseUrl}/auth/login?error=missing_code`);
   }
 
-  const response = NextResponse.redirect(`${origin}${next}`);
+  const response = NextResponse.redirect(`${baseUrl}${next}`);
 
   const supabase = createServerClient(
     process.env['NEXT_PUBLIC_SUPABASE_URL']!,
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error || !data.user) {
-    return NextResponse.redirect(`${origin}/auth/login?error=auth_failed`);
+    return NextResponse.redirect(`${baseUrl}/auth/login?error=auth_failed`);
   }
 
   // Auto-create credit balance for new users (1000 free credits)
