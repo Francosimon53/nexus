@@ -1,4 +1,4 @@
-import type { Agent, Task, TrustEvent, CreditPackageId, Workflow, WorkflowRun, CreateWorkflowInput } from '@nexus-protocol/shared';
+import type { Agent, Task, TrustEvent, CreditPackageId, Workflow, WorkflowRun, CreateWorkflowInput, TaskReplyInput } from '@nexus-protocol/shared';
 import { NexusError } from '@nexus-protocol/shared';
 
 export interface NexusClientConfig {
@@ -128,6 +128,10 @@ export class TaskService {
 
   async cancel(taskId: string): Promise<Task> {
     return this.req<Task>('POST', `/v1/tasks/${taskId}/cancel`);
+  }
+
+  async reply(taskId: string, data: TaskReplyInput): Promise<Task> {
+    return this.req<Task>('POST', `/v1/tasks/${taskId}/reply`, data);
   }
 
   async *stream(taskId: string): AsyncGenerator<{ event: string; data: unknown }> {
