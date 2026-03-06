@@ -4,9 +4,11 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { TrustScoreBar } from '@/components/trust-score-bar';
-import { TrustBadge } from '@/components/trust-badge';
 import { AgentStatusBadge } from '@/components/agent-status-badge';
 import { MarketplaceSearch } from './components/marketplace-search';
+import { AgentCard } from './components/agent-card';
+import { getUser } from '@/lib/auth';
+import { getBalance } from '@/lib/billing';
 
 interface PageProps {
   searchParams: Promise<{ q?: string; minTrust?: string; maxPrice?: string }>;
@@ -15,6 +17,14 @@ interface PageProps {
 export default async function MarketplacePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const supabase = getSupabaseAdmin();
+
+  // Get user balance for Try buttons
+  const user = await getUser();
+  let userBalance: number | null = null;
+  if (user) {
+    const bal = await getBalance(supabase, user.id);
+    userBalance = Number(bal.balance);
+  }
 
   // Featured agents
   const { data: featured } = await supabase
@@ -116,47 +126,19 @@ export default async function MarketplacePage({ searchParams }: PageProps) {
             const tasks = taskCounts[agent.id as string] ?? 0;
             const skills = Array.isArray(agent.skills) ? (agent.skills as { id: string; name: string }[]) : [];
             return (
-              <Link
+              <AgentCard
                 key={agent.id as string}
-                href={`/marketplace/${agent.id}`}
-                className="group rounded-lg border border-border bg-surface-raised p-4 hover:border-nexus-600 transition-colors"
-              >
-                <div className="mb-2 flex items-center justify-between">
-                  <h3 className="font-semibold group-hover:text-nexus-400 transition-colors truncate">
-                    {agent.name as string}
-                  </h3>
-                  <TrustBadge score={Number(agent.trust_score)} />
-                </div>
-                <p className="mb-3 line-clamp-2 text-sm text-text-secondary">
-                  {(agent.description as string) || 'No description'}
-                </p>
-                <TrustScoreBar score={Number(agent.trust_score)} />
-
-                <div className="mt-3 flex items-center gap-3 text-xs text-text-secondary">
-                  {Number(agent.price_per_task) > 0 && (
-                    <span>
-                      <span className="font-medium text-nexus-400">{Number(agent.price_per_task)}</span> credits/task
-                    </span>
-                  )}
-                  {tasks > 0 && <span>{tasks} tasks</span>}
-                </div>
-
-                {skills.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {skills.slice(0, 3).map((skill) => (
-                      <span
-                        key={skill.id}
-                        className="rounded-full bg-surface-overlay px-2 py-0.5 text-[10px] text-text-secondary"
-                      >
-                        {skill.name}
-                      </span>
-                    ))}
-                    {skills.length > 3 && (
-                      <span className="text-[10px] text-text-secondary/50">+{skills.length - 3}</span>
-                    )}
-                  </div>
-                )}
-              </Link>
+                agent={{
+                  id: agent.id as string,
+                  name: agent.name as string,
+                  description: (agent.description as string) || '',
+                  trust_score: Number(agent.trust_score),
+                  price_per_task: Number(agent.price_per_task) || 0,
+                  skills,
+                }}
+                taskCount={tasks}
+                userBalance={userBalance}
+              />
             );
           })}
         </div>

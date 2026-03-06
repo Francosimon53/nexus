@@ -24,6 +24,7 @@ export default async function TaskDetailPage({
   if (!task) notFound();
 
   const agent = task.agents as { name: string; endpoint: string } | null;
+  const cost = Number(task.actual_cost_credits) || 0;
 
   return (
     <div className="max-w-3xl">
@@ -52,6 +53,12 @@ export default async function TaskDetailPage({
           <h3 className="mb-1 text-xs font-medium text-text-secondary">Created</h3>
           <p className="text-sm">{new Date(task.created_at).toLocaleString()}</p>
         </div>
+        {cost > 0 && (
+          <div className="rounded-lg border border-border bg-surface-raised p-4">
+            <h3 className="mb-1 text-xs font-medium text-text-secondary">Cost</h3>
+            <p className="text-sm text-nexus-400 font-medium">{cost} credits</p>
+          </div>
+        )}
         {task.timeout_at && (
           <div className="rounded-lg border border-border bg-surface-raised p-4">
             <h3 className="mb-1 text-xs font-medium text-text-secondary">Timeout</h3>
@@ -59,15 +66,9 @@ export default async function TaskDetailPage({
           </div>
         )}
         {task.error_message && (
-          <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-4">
+          <div className="col-span-2 rounded-lg border border-red-500/30 bg-red-500/5 p-4">
             <h3 className="mb-1 text-xs font-medium text-red-400">Error</h3>
             <p className="text-sm text-red-300">{task.error_message}</p>
-          </div>
-        )}
-        {task.max_budget_credits > 0 && (
-          <div className="rounded-lg border border-border bg-surface-raised p-4">
-            <h3 className="mb-1 text-xs font-medium text-text-secondary">Budget</h3>
-            <p className="text-sm">{task.actual_cost_credits} / {task.max_budget_credits} credits</p>
           </div>
         )}
       </div>
@@ -79,26 +80,31 @@ export default async function TaskDetailPage({
       </div>
 
       {/* Artifacts */}
-      <div className="mb-6">
-        <h2 className="mb-3 text-sm font-medium text-text-secondary">Artifacts</h2>
-        <ArtifactList artifacts={task.artifacts ?? []} />
-      </div>
+      {task.artifacts && (task.artifacts as unknown[]).length > 0 && (
+        <div className="mb-6">
+          <h2 className="mb-3 text-sm font-medium text-text-secondary">Artifacts</h2>
+          <ArtifactList artifacts={task.artifacts ?? []} />
+        </div>
+      )}
 
-      {/* Input / Output JSON */}
-      {task.input && Object.keys(task.input).length > 0 && (
+      {/* Output */}
+      {task.output && (
+        <div className="mb-6">
+          <h2 className="mb-2 text-sm font-medium text-text-secondary">Output</h2>
+          <div className="rounded-lg border border-border bg-surface-raised p-4 text-sm whitespace-pre-wrap">
+            {typeof (task.output as Record<string, unknown>).result === 'string'
+              ? (task.output as Record<string, unknown>).result as string
+              : JSON.stringify(task.output, null, 2)}
+          </div>
+        </div>
+      )}
+
+      {/* Input */}
+      {task.input && Object.keys(task.input as object).length > 0 && (
         <div className="mb-6">
           <h2 className="mb-2 text-sm font-medium text-text-secondary">Input</h2>
           <pre className="rounded-lg border border-border bg-surface-raised p-4 text-xs overflow-auto">
             {JSON.stringify(task.input, null, 2)}
-          </pre>
-        </div>
-      )}
-
-      {task.output && (
-        <div className="mb-6">
-          <h2 className="mb-2 text-sm font-medium text-text-secondary">Output</h2>
-          <pre className="rounded-lg border border-border bg-surface-raised p-4 text-xs overflow-auto">
-            {JSON.stringify(task.output, null, 2)}
           </pre>
         </div>
       )}

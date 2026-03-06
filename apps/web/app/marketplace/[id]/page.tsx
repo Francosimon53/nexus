@@ -7,6 +7,9 @@ import { TrustScoreBar } from '@/components/trust-score-bar';
 import { TrustBadge } from '@/components/trust-badge';
 import { AgentStatusBadge } from '@/components/agent-status-badge';
 import { recalculateTrust } from '@nexus-protocol/protocol';
+import { getUser } from '@/lib/auth';
+import { getBalance } from '@/lib/billing';
+import { UseAgentModal } from '../components/use-agent-modal';
 import type { TrustComponents } from '@nexus-protocol/shared';
 
 export default async function MarketplaceAgentPage({
@@ -21,6 +24,14 @@ export default async function MarketplaceAgentPage({
   if (!agent) notFound();
 
   const trustProfile = await recalculateTrust(supabase, id);
+
+  // User balance
+  const user = await getUser();
+  let userBalance: number | null = null;
+  if (user) {
+    const bal = await getBalance(supabase, user.id);
+    userBalance = Number(bal.balance);
+  }
 
   // Task stats
   const { count: totalTasks } = await supabase
@@ -41,6 +52,8 @@ export default async function MarketplaceAgentPage({
 
   const skills = Array.isArray(agent.skills) ? (agent.skills as { id: string; name: string; description: string; tags?: string[] }[]) : [];
   const components = trustProfile.components as TrustComponents;
+  const costPerTask = Number(agent.price_per_task) || 0;
+  const isOnline = agent.status === 'online';
 
   return (
     <div className="max-w-3xl">
@@ -75,7 +88,7 @@ export default async function MarketplaceAgentPage({
         </div>
         <div className="rounded-lg border border-border bg-surface-raised p-4 text-center">
           <div className="text-2xl font-bold tabular-nums text-nexus-400">
-            {Number(agent.price_per_task) || 'Free'}
+            {costPerTask || 'Free'}
           </div>
           <div className="text-xs text-text-secondary">Credits/Task</div>
         </div>
@@ -143,20 +156,24 @@ export default async function MarketplaceAgentPage({
       <div className="rounded-lg border border-nexus-600/30 bg-nexus-600/5 p-6 text-center">
         <h2 className="mb-2 font-semibold">Use this Agent</h2>
         <p className="mb-4 text-sm text-text-secondary">
-          Add this agent to your workflows or delegate tasks directly.
+          {isOnline
+            ? 'Send a task directly to this agent and get results in real-time.'
+            : 'This agent is currently offline. Add it to a workflow for later.'}
         </p>
         <div className="flex justify-center gap-3">
+          {isOnline && (
+            <UseAgentModal
+              agentId={id}
+              agentName={agent.name as string}
+              costPerTask={costPerTask}
+              userBalance={userBalance}
+            />
+          )}
           <Link
             href="/workflows/new"
-            className="rounded-lg bg-nexus-600 px-4 py-2 text-sm font-medium text-white hover:bg-nexus-500 transition-colors"
-          >
-            Add to Workflow
-          </Link>
-          <Link
-            href={`/agents/${id}`}
             className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-primary hover:bg-surface-overlay transition-colors"
           >
-            View in Dashboard
+            Add to Workflow
           </Link>
         </div>
       </div>
