@@ -46,16 +46,31 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Find a requester agent ID for this user (or use system agent)
+    // Find a requester agent ID: prefer user's own agent, fall back to system agent
     const { data: userAgent } = await supabase
       .from('agents')
       .select('id')
       .eq('owner_user_id', userId)
       .order('created_at', { ascending: true })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    const requesterAgentId = userAgent?.id as string ?? agentId;
+    let requesterAgentId = userAgent?.id as string | undefined;
+    if (!requesterAgentId) {
+      // User doesn't own any agents — use system agent as requester
+      if (process.env['SYSTEM_AGENT_ID']) {
+        requesterAgentId = process.env['SYSTEM_AGENT_ID'];
+      } else {
+        const { data: firstAgent } = await supabase
+          .from('agents')
+          .select('id')
+          .neq('id', agentId)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        requesterAgentId = (firstAgent?.id as string) ?? agentId;
+      }
+    }
 
     // Create task
     const title = `Task for ${agent.name as string}`;
