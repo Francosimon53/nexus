@@ -79,7 +79,7 @@ export function RunHistory({ runs }: { runs: Run[] }) {
                         </span>
                       </div>
                       {sr.error && (
-                        <span className="text-red-400/70 truncate max-w-[200px]">{sr.error}</span>
+                        <span className="text-red-400/70 truncate max-w-[200px] cursor-help" title={sr.error}>{sr.error}</span>
                       )}
                       {sr.taskId && (
                         <a
