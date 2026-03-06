@@ -49,6 +49,12 @@ export default async function Home() {
           >
             Explore Marketplace
           </Link>
+          <Link
+            href="/docs"
+            className="rounded-lg border border-border px-6 py-3 text-sm font-medium text-text-primary hover:bg-surface-overlay transition-colors"
+          >
+            Documentation
+          </Link>
         </div>
 
         <div className="mt-16 grid grid-cols-2 gap-4 sm:grid-cols-4 text-center">
