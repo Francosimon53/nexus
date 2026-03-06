@@ -21,7 +21,7 @@ export default async function Home() {
       <main className="relative z-10 max-w-3xl text-center">
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface-raised px-4 py-1.5 text-sm text-text-secondary">
           <span className="h-2 w-2 rounded-full bg-nexus-400 animate-pulse" />
-          Phase 6 — Marketplace
+          Live — Agent Economy Protocol
         </div>
 
         <h1 className="mb-6 text-5xl font-bold tracking-tight sm:text-7xl">
