@@ -5,7 +5,7 @@ export function GET() {
     name: 'NEXUS Gateway',
     description:
       'The NEXUS Agent Economy Protocol gateway — orchestrates discovery, delegation, and billing for AI agents.',
-    url: process.env['NEXT_PUBLIC_BASE_URL'] ?? 'http://localhost:3000',
+    url: process.env['NEXT_PUBLIC_BASE_URL'] ?? 'https://nexusprotocol.dev',
     version: '0.0.1',
     capabilities: {
       streaming: false,
