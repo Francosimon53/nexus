@@ -141,14 +141,15 @@ export async function recalculateTrust(
   supabase: SupabaseClient,
   agentId: string,
 ): Promise<TrustProfile> {
-  // Fetch agent creation date
+  // Fetch agent creation date and existing metadata
   const { data: agent } = await supabase
     .from('agents')
-    .select('created_at')
+    .select('created_at, metadata')
     .eq('id', agentId)
     .single();
 
   const createdAt = (agent?.created_at as string) ?? new Date().toISOString();
+  const existingMetadata = (agent?.metadata as Record<string, unknown>) ?? {};
 
   const [taskStats, ratingStats] = await Promise.all([
     getTaskStats(supabase, agentId),
@@ -158,12 +159,13 @@ export async function recalculateTrust(
   const components = computeComponents(taskStats, ratingStats, createdAt);
   const trustScore = computeTrustScore(components);
 
-  // Persist to agents table
+  // Persist to agents table (merge into existing metadata)
   await supabase
     .from('agents')
     .update({
       trust_score: trustScore,
       metadata: {
+        ...existingMetadata,
         trust_components: components,
       },
     })
