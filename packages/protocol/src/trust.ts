@@ -68,8 +68,9 @@ async function getRatingStats(
   supabase: SupabaseClient,
   agentId: string,
 ): Promise<RatingStats> {
-  // Ratings are stored as trust_events with event_type='rating_received'
-  // The score field stores the 1-5 rating value directly
+  // Ratings are stored as trust_events with event_type='rating_received'.
+  // The score field stores the 1-5 rating value (validated by RateAgentSchema).
+  // Other event types use the broader -10 to 10 range but are NOT included here.
   const { data: events } = await supabase
     .from('trust_events')
     .select('score')
@@ -80,8 +81,10 @@ async function getRatingStats(
     return { avgRating: null, count: 0 };
   }
 
-  const sum = events.reduce((acc, e) => acc + Number(e.score), 0);
-  return { avgRating: sum / events.length, count: events.length };
+  // Clamp each rating to 1-5 defensively (score column allows wider range for other event types)
+  const ratings = events.map((e) => Math.min(5, Math.max(1, Number(e.score))));
+  const sum = ratings.reduce((acc, r) => acc + r, 0);
+  return { avgRating: sum / ratings.length, count: ratings.length };
 }
 
 export function computeComponents(
@@ -96,13 +99,12 @@ export function computeComponents(
   }
 
   // Speed (20%): avg response time vs 5-minute SLA baseline
+  // Continuous linear scale: 0ms → 100, at SLA → 50, at 2x SLA → 0
   const SLA_MS = 5 * 60 * 1000; // 5 minutes
   let speed = 50;
   if (taskStats.avgResponseMs !== null) {
-    // Under SLA = 100, at 2x SLA = 50, at 3x+ SLA = 0
     const ratio = taskStats.avgResponseMs / SLA_MS;
-    speed = clamp(100 - (ratio - 1) * 50);
-    if (ratio <= 1) speed = clamp(50 + (1 - ratio) * 50);
+    speed = clamp(100 - ratio * 50);
   }
 
   // Quality (25%): average rating normalized to 0-100
