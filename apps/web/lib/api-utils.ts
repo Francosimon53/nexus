@@ -18,6 +18,13 @@ export function errorResponse(err: unknown) {
     );
   }
 
+  if (err instanceof Error && err.message === 'Unauthorized') {
+    return NextResponse.json(
+      { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
+      { status: 401 },
+    );
+  }
+
   console.error('Unhandled error:', err);
   return NextResponse.json(
     { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },

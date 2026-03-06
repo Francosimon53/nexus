@@ -2,13 +2,11 @@ export const dynamic = 'force-dynamic';
 
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { ensureCreditBalance } from '@/lib/billing';
+import { requireUser } from '@/lib/auth';
 import { BalanceCard } from './components/balance-card';
 import { BuyCredits } from './components/buy-credits';
 import { TransactionHistory } from './components/transaction-history';
 import { UsageChart } from './components/usage-chart';
-
-// TODO(phase-2): Replace admin client with authenticated SSR client
-const DEMO_USER_ID = process.env['DEMO_USER_ID'] ?? '00000000-0000-0000-0000-000000000000';
 
 async function getUsageForPeriod(supabase: ReturnType<typeof getSupabaseAdmin>, userId: string, days: number) {
   const since = new Date(Date.now() - days * 86400000).toISOString();
@@ -41,12 +39,13 @@ async function getUsageForPeriod(supabase: ReturnType<typeof getSupabaseAdmin>, 
 }
 
 export default async function BillingPage() {
+  const user = await requireUser();
   const supabase = getSupabaseAdmin();
 
   // Get or create balance
   let balance;
   try {
-    balance = await ensureCreditBalance(supabase, DEMO_USER_ID);
+    balance = await ensureCreditBalance(supabase, user.id);
   } catch {
     balance = { balance: 0, total_earned: 0, total_spent: 0, total_purchased: 0 };
   }
@@ -55,15 +54,15 @@ export default async function BillingPage() {
   const { data: transactions } = await supabase
     .from('credit_transactions')
     .select('*')
-    .eq('user_id', DEMO_USER_ID)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(20);
 
   // Get usage data for all periods
   const [usage7d, usage30d, usage90d] = await Promise.all([
-    getUsageForPeriod(supabase, DEMO_USER_ID, 7),
-    getUsageForPeriod(supabase, DEMO_USER_ID, 30),
-    getUsageForPeriod(supabase, DEMO_USER_ID, 90),
+    getUsageForPeriod(supabase, user.id, 7),
+    getUsageForPeriod(supabase, user.id, 30),
+    getUsageForPeriod(supabase, user.id, 90),
   ]);
 
   return (

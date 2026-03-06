@@ -2,8 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
-
-const DEMO_USER_ID = process.env['DEMO_USER_ID'] ?? '00000000-0000-0000-0000-000000000000';
+import { requireUser } from '@/lib/auth';
 
 const runStatusColor: Record<string, string> = {
   completed: 'text-green-400',
@@ -13,12 +12,13 @@ const runStatusColor: Record<string, string> = {
 };
 
 export default async function WorkflowsPage() {
+  const user = await requireUser();
   const supabase = getSupabaseAdmin();
 
   const { data: workflows } = await supabase
     .from('workflows')
     .select('*')
-    .eq('owner_user_id', DEMO_USER_ID)
+    .eq('owner_user_id', user.id)
     .order('created_at', { ascending: false });
 
   // Fetch latest run for each workflow

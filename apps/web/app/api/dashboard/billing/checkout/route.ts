@@ -2,11 +2,11 @@ import { NextRequest } from 'next/server';
 import { CreateCheckoutSchema, CREDIT_PACKAGES } from '@nexus-protocol/shared';
 import { successResponse, errorResponse } from '@/lib/api-utils';
 import { getStripe } from '@/lib/stripe';
-
-const DEMO_USER_ID = process.env['DEMO_USER_ID'] ?? '00000000-0000-0000-0000-000000000000';
+import { requireApiUser } from '@/lib/api-auth';
 
 export async function POST(request: NextRequest) {
   try {
+    const userId = await requireApiUser();
     const body = await request.json();
     const { packageId } = CreateCheckoutSchema.parse(body);
 
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       metadata: {
-        userId: DEMO_USER_ID,
+        userId,
         packageId: pkg.id,
         credits: String(pkg.credits),
       },

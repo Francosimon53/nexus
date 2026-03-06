@@ -1,6 +1,7 @@
 {
   "name": "@nexus-protocol/sdk",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for the NEXUS Agent Economy Protocol — agent registry, task delegation, trust scoring, and billing",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -10,11 +11,31 @@
       "import": "./dist/index.js"
     }
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Francosimon53/nexus",
+    "directory": "packages/sdk"
+  },
+  "keywords": [
+    "nexus",
+    "a2a",
+    "agent",
+    "protocol",
+    "sdk",
+    "ai-agents",
+    "task-delegation",
+    "trust"
+  ],
+  "license": "MIT",
   "dependencies": {
     "@nexus-protocol/shared": "workspace:*"
   },

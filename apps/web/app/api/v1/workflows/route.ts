@@ -2,8 +2,7 @@ import { NextRequest } from 'next/server';
 import { CreateWorkflowSchema } from '@nexus-protocol/shared';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { successResponse, errorResponse } from '@/lib/api-utils';
-
-const DEMO_USER_ID = process.env['DEMO_USER_ID'] ?? '00000000-0000-0000-0000-000000000000';
+import { requireApiUser } from '@/lib/api-auth';
 
 /**
  * Validate that the step DAG has no cycles and all dependency indices are valid.
@@ -42,6 +41,7 @@ function validateDAG(steps: { dependsOn: number[] }[]): string | null {
 
 export async function POST(request: NextRequest) {
   try {
+    const userId = await requireApiUser();
     const body = await request.json();
     const input = CreateWorkflowSchema.parse(body);
     const supabase = getSupabaseAdmin();
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       .insert({
         name: input.name,
         description: input.description,
-        owner_user_id: DEMO_USER_ID,
+        owner_user_id: userId,
         steps: input.steps,
       })
       .select('*')
@@ -88,12 +88,13 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
+    const userId = await requireApiUser();
     const supabase = getSupabaseAdmin();
 
     const { data: workflows, error } = await supabase
       .from('workflows')
       .select('*')
-      .eq('owner_user_id', DEMO_USER_ID)
+      .eq('owner_user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) return errorResponse(new Error(error.message));

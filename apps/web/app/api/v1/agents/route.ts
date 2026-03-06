@@ -3,12 +3,11 @@ import { RegisterAgentSchema } from '@nexus-protocol/shared';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { successResponse, errorResponse } from '@/lib/api-utils';
 import { generateAgentCard } from '@/lib/agent-card';
-
-// TODO(phase-2): Replace admin client with authenticated SSR client
-const DEMO_USER_ID = process.env['DEMO_USER_ID'] ?? '00000000-0000-0000-0000-000000000000';
+import { requireApiUser } from '@/lib/api-auth';
 
 export async function POST(request: NextRequest) {
   try {
+    const userId = await requireApiUser();
     const body = await request.json();
     const input = RegisterAgentSchema.parse(body);
     const agentCard = generateAgentCard(input);
@@ -25,7 +24,7 @@ export async function POST(request: NextRequest) {
         metadata: input.metadata,
         price_per_task: input.pricePerTask,
         agent_card: agentCard,
-        owner_user_id: DEMO_USER_ID,
+        owner_user_id: userId,
       })
       .select('*')
       .single();

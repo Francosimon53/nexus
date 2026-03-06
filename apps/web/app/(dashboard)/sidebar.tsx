@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { createBrowserClient } from '@supabase/ssr';
 
 const navItems = [
   { label: 'Agents', href: '/agents' },
@@ -11,11 +12,29 @@ const navItems = [
   { label: 'Settings', href: '/settings' },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  userEmail: string | null;
+  userName: string | null;
+}
+
+export function Sidebar({ userEmail, userName }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleLogout() {
+    const supabase = createBrowserClient(
+      process.env['NEXT_PUBLIC_SUPABASE_URL']!,
+      process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY']!,
+    );
+    await supabase.auth.signOut();
+    router.push('/auth/login');
+    router.refresh();
+  }
+
+  const displayName = userName || userEmail?.split('@')[0] || 'User';
 
   return (
-    <aside className="w-56 border-r border-border bg-surface-raised p-4">
+    <aside className="flex w-56 flex-col border-r border-border bg-surface-raised p-4">
       <Link href="/" className="mb-8 block text-lg font-bold text-nexus-400">
         NEXUS
       </Link>
@@ -37,7 +56,8 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="mt-auto pt-8">
+
+      <div className="pt-4">
         <Link
           href="/marketplace"
           className="rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-surface-overlay hover:text-text-primary transition-colors flex items-center gap-1.5"
@@ -45,6 +65,22 @@ export function Sidebar() {
           Marketplace
           <span className="text-xs text-text-secondary/50">&nearr;</span>
         </Link>
+      </div>
+
+      {/* User profile */}
+      <div className="mt-auto border-t border-border pt-4">
+        <div className="mb-2 px-3">
+          <p className="truncate text-sm font-medium text-text-primary">{displayName}</p>
+          {userEmail && (
+            <p className="truncate text-xs text-text-secondary">{userEmail}</p>
+          )}
+        </div>
+        <button
+          onClick={handleLogout}
+          className="w-full rounded-md px-3 py-2 text-left text-sm text-text-secondary hover:bg-surface-overlay hover:text-text-primary transition-colors"
+        >
+          Sign out
+        </button>
       </div>
     </aside>
   );
