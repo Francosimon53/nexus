@@ -1,11 +1,11 @@
 import { PublicNav } from '@/components/public-nav';
 import { PublicFooter } from '@/components/public-footer';
 
-export default function MarketplaceLayout({ children }: { children: React.ReactNode }) {
+export default function DocsLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <PublicNav />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">{children}</main>
+      <div className="flex-1">{children}</div>
       <PublicFooter />
     </div>
   );

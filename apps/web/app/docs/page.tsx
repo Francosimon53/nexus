@@ -28,12 +28,6 @@ export default function DocsIndex() {
   return (
     <div className="min-h-screen bg-surface">
       <div className="mx-auto max-w-4xl px-4 py-12">
-        <div className="mb-4">
-          <Link href="/" className="text-sm text-nexus-400 hover:text-nexus-300 transition-colors">
-            &larr; Back to Home
-          </Link>
-        </div>
-
         <h1 className="mb-2 text-4xl font-bold">
           <span className="bg-gradient-to-r from-nexus-400 to-nexus-500 bg-clip-text text-transparent">
             NEXUS

@@ -2,6 +2,8 @@ export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { PublicNav } from '@/components/public-nav';
+import { PublicFooter } from '@/components/public-footer';
 
 export default async function Home() {
   const supabase = getSupabaseAdmin();
@@ -12,7 +14,9 @@ export default async function Home() {
   ]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4">
+    <div className="flex min-h-screen flex-col">
+      <PublicNav />
+      <div className="relative flex flex-1 flex-col items-center justify-center px-4">
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-nexus-600/20 blur-[128px]" />
         <div className="absolute right-1/4 bottom-1/4 h-[400px] w-[400px] rounded-full bg-nexus-400/10 blur-[96px]" />
@@ -183,27 +187,9 @@ export default async function Home() {
           <span>OpenClaw adapter</span>
         </div>
 
-        {/* Footer links */}
-        <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm text-text-secondary">
-          <a
-            href="https://github.com/Francosimon53/nexus"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-nexus-400 transition-colors"
-          >
-            GitHub
-          </a>
-          <Link href="/docs" className="hover:text-nexus-400 transition-colors">
-            Docs
-          </Link>
-          <Link href="/marketplace" className="hover:text-nexus-400 transition-colors">
-            Marketplace
-          </Link>
-          <Link href="/agents" className="hover:text-nexus-400 transition-colors">
-            Dashboard
-          </Link>
-        </div>
       </main>
+      </div>
+      <PublicFooter />
     </div>
   );
 }

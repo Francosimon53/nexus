@@ -60,13 +60,21 @@ export function Sidebar({ userEmail, userName }: SidebarProps) {
         })}
       </nav>
 
-      <div className="pt-4">
+      <div className="pt-4 space-y-1">
         <Link
           href="/marketplace"
           onClick={() => setMobileOpen(false)}
           className="rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-surface-overlay hover:text-text-primary transition-colors flex items-center gap-1.5"
         >
           Marketplace
+          <span className="text-xs text-text-secondary/50">&nearr;</span>
+        </Link>
+        <Link
+          href="/docs"
+          onClick={() => setMobileOpen(false)}
+          className="rounded-md px-3 py-2 text-sm text-text-secondary hover:bg-surface-overlay hover:text-text-primary transition-colors flex items-center gap-1.5"
+        >
+          Docs
           <span className="text-xs text-text-secondary/50">&nearr;</span>
         </Link>
       </div>
