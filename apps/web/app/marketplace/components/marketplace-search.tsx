@@ -8,7 +8,7 @@ export function MarketplaceSearch() {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const [minTrust, setMinTrust] = useState(searchParams.get('minTrust') ?? '');
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const navigate = useCallback(
     (q: string, trust: string) => {
@@ -23,16 +23,16 @@ export function MarketplaceSearch() {
 
   // Debounced navigation on text input change
   useEffect(() => {
-    clearTimeout(debounceRef.current);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       navigate(query, minTrust);
     }, 300);
-    return () => clearTimeout(debounceRef.current);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query, minTrust, navigate]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    clearTimeout(debounceRef.current);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     navigate(query, minTrust);
   }
 
