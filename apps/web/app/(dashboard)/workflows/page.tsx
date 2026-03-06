@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
-import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { createSupabaseSSR } from '@/lib/supabase';
 import { requireUser } from '@/lib/auth';
 
 const runStatusColor: Record<string, string> = {
@@ -13,7 +13,7 @@ const runStatusColor: Record<string, string> = {
 
 export default async function WorkflowsPage() {
   const user = await requireUser();
-  const supabase = getSupabaseAdmin();
+  const supabase = await createSupabaseSSR();
 
   const { data: workflows } = await supabase
     .from('workflows')

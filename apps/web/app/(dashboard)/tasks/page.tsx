@@ -1,11 +1,11 @@
 export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
-import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { createSupabaseSSR } from '@/lib/supabase';
 import { TaskStatusBadge } from './components/task-status-badge';
 
 export default async function TasksPage() {
-  const supabase = getSupabaseAdmin();
+  const supabase = await createSupabaseSSR();
   const { data: tasks } = await supabase
     .from('tasks')
     .select('*, agents!tasks_assigned_agent_id_fkey(name)')

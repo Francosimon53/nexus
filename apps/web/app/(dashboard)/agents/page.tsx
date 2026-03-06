@@ -1,13 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
-import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { createSupabaseSSR } from '@/lib/supabase';
 import { AgentStatusBadge } from '@/components/agent-status-badge';
 import { TrustScoreBar } from '@/components/trust-score-bar';
 
 export default async function AgentsPage() {
-  // TODO(phase-2): Replace admin client with authenticated SSR client
-  const supabase = getSupabaseAdmin();
+  const supabase = await createSupabaseSSR();
   const { data: agents } = await supabase
     .from('agents')
     .select('*')

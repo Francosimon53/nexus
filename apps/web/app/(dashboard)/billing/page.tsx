@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { createSupabaseSSR } from '@/lib/supabase';
 import { ensureCreditBalance } from '@/lib/billing';
 import { requireUser } from '@/lib/auth';
 import { BalanceCard } from './components/balance-card';
@@ -9,7 +10,7 @@ import { TransactionHistory } from './components/transaction-history';
 import { UsageChart } from './components/usage-chart';
 import { PaymentStatus } from './components/payment-status';
 
-async function getUsageForPeriod(supabase: ReturnType<typeof getSupabaseAdmin>, userId: string, days: number) {
+async function getUsageForPeriod(supabase: Awaited<ReturnType<typeof createSupabaseSSR>>, userId: string, days: number) {
   const since = new Date(Date.now() - days * 86400000).toISOString();
   const { data: transactions } = await supabase
     .from('credit_transactions')
@@ -41,17 +42,18 @@ async function getUsageForPeriod(supabase: ReturnType<typeof getSupabaseAdmin>, 
 
 export default async function BillingPage() {
   const user = await requireUser();
-  const supabase = getSupabaseAdmin();
+  const supabase = await createSupabaseSSR();
 
-  // Get or create balance
+  // Ensure balance exists (needs admin for INSERT if new user)
   let balance;
   try {
-    balance = await ensureCreditBalance(supabase, user.id);
+    const admin = getSupabaseAdmin();
+    balance = await ensureCreditBalance(admin, user.id);
   } catch {
     balance = { balance: 0, total_earned: 0, total_spent: 0, total_purchased: 0 };
   }
 
-  // Get recent transactions
+  // Read transactions with user-scoped RLS client
   const { data: transactions } = await supabase
     .from('credit_transactions')
     .select('*')
