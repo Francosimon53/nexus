@@ -44,6 +44,20 @@ export function RegisterAgentForm() {
     setSubmitting(true);
     setError('');
 
+    // Validate endpoint is a valid URL
+    try {
+      const url = new URL(endpoint);
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        setError('Endpoint must be an HTTP or HTTPS URL.');
+        setSubmitting(false);
+        return;
+      }
+    } catch {
+      setError('Endpoint must be a valid URL (e.g., https://my-agent.example.com/a2a).');
+      setSubmitting(false);
+      return;
+    }
+
     const payload = {
       name,
       description,
