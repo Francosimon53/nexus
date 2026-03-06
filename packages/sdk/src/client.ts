@@ -1,4 +1,4 @@
-import type { Agent, Task, TrustEvent, CreditPackageId } from '@nexus-protocol/shared';
+import type { Agent, Task, TrustEvent, CreditPackageId, Workflow, WorkflowRun, CreateWorkflowInput } from '@nexus-protocol/shared';
 import { NexusError } from '@nexus-protocol/shared';
 
 export interface NexusClientConfig {
@@ -216,11 +216,35 @@ export class BillingService {
   }
 }
 
+export class WorkflowService {
+  constructor(
+    private baseUrl: string,
+    private apiKey: string,
+  ) {}
+
+  async create(data: CreateWorkflowInput): Promise<Workflow> {
+    return request<Workflow>(this.baseUrl, this.apiKey, 'POST', '/v1/workflows', data);
+  }
+
+  async list(): Promise<Workflow[]> {
+    return request<Workflow[]>(this.baseUrl, this.apiKey, 'GET', '/v1/workflows');
+  }
+
+  async get(workflowId: string): Promise<Workflow & { runs: WorkflowRun[] }> {
+    return request<Workflow & { runs: WorkflowRun[] }>(this.baseUrl, this.apiKey, 'GET', `/v1/workflows/${workflowId}`);
+  }
+
+  async execute(workflowId: string): Promise<WorkflowRun> {
+    return request<WorkflowRun>(this.baseUrl, this.apiKey, 'POST', `/v1/workflows/${workflowId}/execute`);
+  }
+}
+
 export class NexusClient {
   public readonly agents: AgentService;
   public readonly tasks: TaskService;
   public readonly trust: TrustService;
   public readonly billing: BillingService;
+  public readonly workflows: WorkflowService;
 
   constructor(config: NexusClientConfig) {
     const baseUrl = (config.baseUrl ?? 'https://api.nexus-protocol.dev').replace(/\/+$/, '');
@@ -228,5 +252,6 @@ export class NexusClient {
     this.tasks = new TaskService(baseUrl, config.apiKey);
     this.trust = new TrustService(baseUrl, config.apiKey);
     this.billing = new BillingService(baseUrl, config.apiKey);
+    this.workflows = new WorkflowService(baseUrl, config.apiKey);
   }
 }
