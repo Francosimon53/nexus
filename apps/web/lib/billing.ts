@@ -70,6 +70,8 @@ export async function getBalance(
 
 /**
  * Debit credits from a user's balance. Throws if insufficient.
+ * Uses a conditional update (WHERE balance >= amount) to prevent
+ * concurrent requests from overdrawing the balance.
  */
 export async function debitCredits(
   supabase: SupabaseClient,
@@ -80,22 +82,31 @@ export async function debitCredits(
   description: string,
 ): Promise<void> {
   const balance = await ensureCreditBalance(supabase, userId);
+  const newBalance = Number(balance.balance) - amount;
 
-  if (balance.balance < amount) {
+  if (newBalance < 0) {
     throw new Error(`Insufficient credits: have ${balance.balance}, need ${amount}`);
   }
 
-  const newBalance = Number(balance.balance) - amount;
-
-  const { error } = await supabase
+  // Conditional update: only succeeds if balance hasn't changed (optimistic lock).
+  // The .eq('balance', balance.balance) ensures no concurrent debit has altered it.
+  const { data: updated, error } = await supabase
     .from('credit_balances')
     .update({
       balance: newBalance,
       total_spent: Number(balance.total_spent) + amount,
     })
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    .gte('balance', amount)
+    .select('user_id')
+    .maybeSingle();
 
   if (error) throw new Error(`Failed to debit credits: ${error.message}`);
+
+  if (!updated) {
+    // Row wasn't updated — balance changed between read and write (concurrent debit)
+    throw new Error(`Insufficient credits: balance changed concurrently, please retry`);
+  }
 
   await supabase.from('credit_transactions').insert({
     user_id: userId,
