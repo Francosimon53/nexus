@@ -3,8 +3,13 @@ import { CreateCheckoutSchema, CREDIT_PACKAGES } from '@nexus-protocol/shared';
 import { successResponse, errorResponse } from '@/lib/api-utils';
 import { getStripe } from '@/lib/stripe';
 import { requireApiUser } from '@/lib/api-auth';
+import { applyRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
+  // 10 checkout attempts per minute per IP
+  const limited = applyRateLimit(request, 'billing:checkout', 10, 60_000);
+  if (limited) return limited;
+
   try {
     const userId = await requireApiUser();
     const body = await request.json();

@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { successResponse, errorResponse } from '@/lib/api-utils';
 import { checkTimeout } from '@/lib/task-timeout';
 import { processTaskAsync } from '@/lib/task-processor';
+import { applyRateLimit } from '@/lib/rate-limit';
 import type { A2AMessage } from '@nexus-protocol/shared';
 
 async function getSystemAgentId(supabase: ReturnType<typeof getSupabaseAdmin>): Promise<string> {
@@ -19,6 +20,10 @@ async function getSystemAgentId(supabase: ReturnType<typeof getSupabaseAdmin>): 
 }
 
 export async function POST(request: NextRequest) {
+  // 30 task creations per minute per IP
+  const limited = applyRateLimit(request, 'tasks:create', 30, 60_000);
+  if (limited) return limited;
+
   try {
     const body = await request.json();
     const input = CreateTaskSchema.parse(body);

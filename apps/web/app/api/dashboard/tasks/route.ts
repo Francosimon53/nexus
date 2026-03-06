@@ -5,6 +5,7 @@ import { successResponse, errorResponse } from '@/lib/api-utils';
 import { requireApiUser } from '@/lib/api-auth';
 import { getBalance } from '@/lib/billing';
 import { processTaskAsync } from '@/lib/task-processor';
+import { applyRateLimit } from '@/lib/rate-limit';
 import type { A2AMessage } from '@nexus-protocol/shared';
 
 const DashboardCreateTaskSchema = z.object({
@@ -13,6 +14,9 @@ const DashboardCreateTaskSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const limited = applyRateLimit(request, 'dashboard:tasks', 20, 60_000);
+  if (limited) return limited;
+
   try {
     const userId = await requireApiUser();
     const body = await request.json();
