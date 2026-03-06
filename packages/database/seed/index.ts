@@ -108,6 +108,47 @@ const demoAgents = [
     price_per_task: 50,
     metadata: { version: '1.0.0', provider: 'vlayer', runtime: 'node' },
   },
+  {
+    name: 'SecureAgent',
+    description:
+      'Multi-capability AI agent by secureagent.app — multi-channel chat, task scheduling, code generation, and browser automation.',
+    endpoint: process.env['SECUREAGENT_ENDPOINT'] ?? 'http://localhost:4200',
+    status: 'online' as const,
+    skills: [
+      {
+        id: 'multi-channel-chat',
+        name: 'Multi-Channel AI Chat',
+        description:
+          'Conversational AI across web, Slack, Discord, and API with context-aware memory',
+        tags: ['chat', 'ai', 'conversational', 'multi-channel'],
+      },
+      {
+        id: 'task-scheduling',
+        name: 'Task Scheduling',
+        description:
+          'Schedule and automate recurring tasks with cron-like precision, dependencies, and conditional triggers',
+        tags: ['scheduling', 'automation', 'tasks', 'cron'],
+      },
+      {
+        id: 'code-generation',
+        name: 'Code Generation',
+        description:
+          'Generate, refactor, and review code across multiple languages with full-file and targeted edit support',
+        tags: ['code', 'generation', 'development', 'refactoring'],
+      },
+      {
+        id: 'browser-automation',
+        name: 'Browser Automation',
+        description:
+          'Automate browser interactions — navigate, fill forms, extract data, and take screenshots via headless browsers',
+        tags: ['browser', 'automation', 'scraping', 'testing'],
+      },
+    ],
+    tags: ['chat', 'automation', 'code', 'browser', 'ai'],
+    trust_score: 88,
+    price_per_task: 25,
+    metadata: { version: '1.0.0', provider: 'secureagent.app', runtime: 'node' },
+  },
 ];
 
 async function seed() {
