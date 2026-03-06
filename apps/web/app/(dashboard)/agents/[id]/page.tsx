@@ -58,7 +58,7 @@ export default async function AgentDetailPage({
       </div>
 
       {/* Trust Score + Breakdown */}
-      <div className="mb-6 grid grid-cols-2 gap-4">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-lg border border-border bg-surface-raised p-4">
           <h2 className="mb-2 text-sm font-medium text-text-secondary">Trust Score</h2>
           <div className="mb-1 text-3xl font-bold tabular-nums">{trustProfile.trustScore}</div>
@@ -76,7 +76,7 @@ export default async function AgentDetailPage({
       </div>
 
       {/* Details */}
-      <div className="mb-6 grid grid-cols-2 gap-4">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-lg border border-border bg-surface-raised p-4">
           <h3 className="mb-1 text-xs font-medium text-text-secondary">Endpoint</h3>
           <p className="break-all text-sm font-mono">{agent.endpoint}</p>
