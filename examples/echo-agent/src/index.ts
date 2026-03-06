@@ -39,6 +39,8 @@ interface TaskState {
   artifacts: Array<{ parts: Array<{ type: string; data: unknown }> }>;
 }
 
+// In-memory task store — state is lost on restart. For production agents,
+// use a persistent store (database, Redis, etc.) instead.
 const tasks = new Map<string, TaskState>();
 
 function jsonResponse(res: ServerResponse, status: number, body: unknown) {
