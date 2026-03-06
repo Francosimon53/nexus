@@ -60,7 +60,7 @@ export function UsageChart({ usageData }: { usageData: UsageData }) {
             No activity in this period
           </div>
         ) : (
-          <svg viewBox={`0 0 ${chartW} ${chartH + 20}`} className="w-full" aria-label="Usage chart">
+          <svg viewBox={`0 0 ${chartW} ${chartH + 20}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet" aria-label="Usage chart">
             {daily.map((d, i) => {
               const x = 20 + (i * (chartW - 40)) / daily.length;
               const spentH = (d.spent / maxVal) * chartH;
