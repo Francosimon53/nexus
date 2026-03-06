@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { JsonRpcRequestSchema, CreateTaskSchema } from '@nexus-protocol/shared';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
-import { forwardToAgent } from '@/lib/agent-forwarder';
 import { checkTimeout } from '@/lib/task-timeout';
+import { processTaskAsync } from '@/lib/task-processor';
 import type { A2AMessage } from '@nexus-protocol/shared';
 
 function rpcError(id: string | number | null, code: number, message: string) {
@@ -37,12 +37,11 @@ export async function POST(request: NextRequest) {
 
     switch (rpc.method) {
       case 'message/send': {
-        // Create + forward a task (same as POST /tasks)
         const taskInput = CreateTaskSchema.parse(params);
 
         const { data: agent } = await supabase
           .from('agents')
-          .select('id, endpoint, status')
+          .select('id, endpoint, status, price_per_task')
           .eq('id', taskInput.assignedAgentId)
           .single();
 
@@ -73,24 +72,19 @@ export async function POST(request: NextRequest) {
           parts: [{ type: 'text', data: JSON.stringify(taskInput.input) }],
         };
 
-        try {
-          const result = await forwardToAgent(agent.endpoint as string, task.id as string, userMessage);
+        // Process asynchronously — same as POST /v1/tasks
+        processTaskAsync({
+          supabase,
+          taskId: task.id as string,
+          taskCreatedAt: task.created_at as string,
+          agentEndpoint: agent.endpoint as string,
+          assignedAgentId: taskInput.assignedAgentId,
+          requesterAgentId,
+          message: userMessage,
+          cost: Number(agent.price_per_task ?? 0),
+        });
 
-          await supabase
-            .from('tasks')
-            .update({
-              status: result.status === 'completed' ? 'completed' : 'running',
-              messages: result.messages ?? [],
-              artifacts: result.artifacts ?? [],
-              completed_at: result.status === 'completed' ? new Date().toISOString() : null,
-            })
-            .eq('id', task.id);
-
-          const { data: updated } = await supabase.from('tasks').select('*').eq('id', task.id).single();
-          return rpcResult(rpc.id, updated ?? task);
-        } catch {
-          return rpcResult(rpc.id, task);
-        }
+        return rpcResult(rpc.id, task);
       }
 
       case 'tasks/get': {
