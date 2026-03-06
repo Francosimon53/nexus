@@ -1,20 +1,39 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 export function MarketplaceSearch() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const [minTrust, setMinTrust] = useState(searchParams.get('minTrust') ?? '');
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const navigate = useCallback(
+    (q: string, trust: string) => {
+      const params = new URLSearchParams();
+      if (q.trim()) params.set('q', q.trim());
+      if (trust) params.set('minTrust', trust);
+      const qs = params.toString();
+      router.push(`/marketplace${qs ? `?${qs}` : ''}`);
+    },
+    [router],
+  );
+
+  // Debounced navigation on text input change
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      navigate(query, minTrust);
+    }, 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [query, minTrust, navigate]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    const params = new URLSearchParams();
-    if (query.trim()) params.set('q', query.trim());
-    if (minTrust) params.set('minTrust', minTrust);
-    router.push(`/marketplace?${params.toString()}`);
+    clearTimeout(debounceRef.current);
+    navigate(query, minTrust);
   }
 
   return (
