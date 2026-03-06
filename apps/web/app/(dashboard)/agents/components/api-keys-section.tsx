@@ -17,10 +17,12 @@ export function ApiKeysSection({ agentId, initialKeys }: { agentId: string; init
   const [newKeyName, setNewKeyName] = useState('');
   const [revealedKey, setRevealedKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   async function createKey() {
     if (!newKeyName.trim()) return;
     setLoading(true);
+    setError('');
     try {
       const res = await fetch(`/api/v1/agents/${agentId}/api-keys`, {
         method: 'POST',
@@ -28,22 +30,37 @@ export function ApiKeysSection({ agentId, initialKeys }: { agentId: string; init
         body: JSON.stringify({ name: newKeyName.trim() }),
       });
       const json = await res.json();
+      if (!res.ok) {
+        setError(json.error?.message ?? 'Failed to create API key.');
+        return;
+      }
       if (json.data) {
         setRevealedKey(json.data.key);
         setKeys((prev) => [{ ...json.data, key: undefined }, ...prev]);
         setNewKeyName('');
       }
+    } catch {
+      setError('Network error. Please try again.');
     } finally {
       setLoading(false);
     }
   }
 
-  async function revokeKey(keyId: string) {
-    const res = await fetch(`/api/v1/agents/${agentId}/api-keys/${keyId}`, {
-      method: 'DELETE',
-    });
-    if (res.ok) {
-      setKeys((prev) => prev.filter((k) => k.id !== keyId));
+  async function revokeKey(keyId: string, keyName: string) {
+    if (!confirm(`Revoke API key "${keyName}"? This cannot be undone.`)) return;
+    setError('');
+    try {
+      const res = await fetch(`/api/v1/agents/${agentId}/api-keys/${keyId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setKeys((prev) => prev.filter((k) => k.id !== keyId));
+      } else {
+        const json = await res.json();
+        setError(json.error?.message ?? 'Failed to revoke key.');
+      }
+    } catch {
+      setError('Network error. Please try again.');
     }
   }
 
@@ -66,9 +83,16 @@ export function ApiKeysSection({ agentId, initialKeys }: { agentId: string; init
           disabled={loading || !newKeyName.trim()}
           className="rounded-md bg-nexus-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-nexus-500 disabled:opacity-50"
         >
-          Generate
+          {loading ? 'Creating...' : 'Generate'}
         </button>
       </div>
+
+      {/* Error message */}
+      {error && (
+        <p className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-400">
+          {error}
+        </p>
+      )}
 
       {/* Revealed key (shown once) */}
       {revealedKey && (
@@ -109,7 +133,7 @@ export function ApiKeysSection({ agentId, initialKeys }: { agentId: string; init
                 </div>
               </div>
               <button
-                onClick={() => revokeKey(k.id)}
+                onClick={() => revokeKey(k.id, k.name)}
                 className="text-xs text-red-400 hover:text-red-300"
               >
                 Revoke
