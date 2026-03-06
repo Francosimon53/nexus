@@ -5,9 +5,11 @@ import { CREDIT_PACKAGES } from '@nexus-protocol/shared';
 
 export function BuyCredits() {
   const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   async function handleBuy(packageId: string) {
     setLoading(packageId);
+    setError('');
     try {
       const res = await fetch('/api/dashboard/billing/checkout', {
         method: 'POST',
@@ -17,9 +19,11 @@ export function BuyCredits() {
       const json = await res.json();
       if (json.data?.url) {
         window.location.href = json.data.url;
+        return;
       }
+      setError(json.error?.message ?? 'Failed to start checkout. Please try again.');
     } catch {
-      // Silently fail — user can retry
+      setError('Network error. Please check your connection and try again.');
     } finally {
       setLoading(null);
     }
@@ -28,6 +32,11 @@ export function BuyCredits() {
   return (
     <div>
       <h2 className="mb-4 text-lg font-semibold">Buy Credits</h2>
+      {error && (
+        <p className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+          {error}
+        </p>
+      )}
       <div className="grid gap-4 sm:grid-cols-3">
         {CREDIT_PACKAGES.map((pkg) => (
           <div
