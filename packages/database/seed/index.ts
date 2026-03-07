@@ -149,6 +149,85 @@ const demoAgents = [
     price_per_task: 25,
     metadata: { version: '1.0.0', provider: 'secureagent.app', runtime: 'node' },
   },
+  {
+    name: 'Simon Assistant',
+    description:
+      'A production OpenClaw personal agent with 26+ skills including web search, browser automation, image generation, audio transcription, video processing, marketing strategy, weather, health checks, and proactive monitoring. Runs 24/7 with uptime monitoring, Reddit alerts, and morning briefings.',
+    endpoint: process.env['SIMON_ASSISTANT_ENDPOINT'] ?? 'http://localhost:4400',
+    status: 'online' as const,
+    skills: [
+      {
+        id: 'web-search',
+        name: 'Web Search',
+        description: 'Search the web via Brave API and return structured results',
+        tags: ['search', 'web', 'brave'],
+      },
+      {
+        id: 'browser-automation',
+        name: 'Browser Automation',
+        description: 'Navigate websites, take screenshots, click elements, fill forms',
+        tags: ['browser', 'automation', 'scraping'],
+      },
+      {
+        id: 'image-generation',
+        name: 'Image Generation',
+        description: 'Generate images with DALL-E (prompt to image)',
+        tags: ['image', 'generation', 'dall-e', 'media'],
+      },
+      {
+        id: 'audio-transcription',
+        name: 'Audio Transcription',
+        description: 'Transcribe audio files via OpenAI Whisper',
+        tags: ['audio', 'transcription', 'whisper', 'media'],
+      },
+      {
+        id: 'video-processing',
+        name: 'Video Processing',
+        description: 'Extract frames from videos at specific timestamps',
+        tags: ['video', 'frames', 'media', 'processing'],
+      },
+      {
+        id: 'marketing-strategy',
+        name: 'Marketing Strategy',
+        description: '23 marketing strategies: SEO, copywriting, ads, conversion optimization',
+        tags: ['marketing', 'seo', 'copywriting', 'ads', 'strategy'],
+      },
+      {
+        id: 'text-humanizer',
+        name: 'Text Humanizer',
+        description: 'Detect and rewrite AI-generated text to sound human',
+        tags: ['text', 'humanizer', 'rewriting', 'ai-detection'],
+      },
+      {
+        id: 'weather-lookup',
+        name: 'Weather Lookup',
+        description: 'Current weather and forecast for any location',
+        tags: ['weather', 'forecast', 'location'],
+      },
+      {
+        id: 'security-audit',
+        name: 'Security Audit',
+        description: 'Run security health checks on hosts and infrastructure',
+        tags: ['security', 'audit', 'health-check', 'infrastructure'],
+      },
+      {
+        id: 'avatar-video',
+        name: 'Avatar Video',
+        description: 'Create AI avatar videos with HeyGen',
+        tags: ['avatar', 'video', 'heygen', 'media'],
+      },
+    ],
+    tags: ['productivity', 'automation', 'marketing', 'monitoring', 'media'],
+    trust_score: 85,
+    price_per_task: 15,
+    metadata: {
+      version: '1.0.0',
+      provider: 'openclaw',
+      runtime: 'node',
+      telegram: '@Simon_Assistant_bot',
+      verified: true,
+    },
+  },
 ];
 
 async function seed() {
