@@ -152,7 +152,7 @@ const demoAgents = [
   {
     name: 'Simon Assistant',
     description:
-      'A production OpenClaw personal agent with 26+ skills including web search, browser automation, image generation, audio transcription, video processing, marketing strategy, weather, health checks, and proactive monitoring. Runs 24/7 with uptime monitoring, Reddit alerts, and morning briefings.',
+      'A production OpenClaw personal agent running 24/7 on a Hostinger VPS with 26+ skills including web search, browser automation, image generation, audio transcription, video processing, marketing strategy, weather, health checks, and proactive monitoring. Accessible via Telegram @Simon_Assistant_bot. Features uptime monitoring, Reddit alerts, and morning briefings.',
     endpoint: process.env['SIMON_ASSISTANT_ENDPOINT'] ?? 'http://localhost:4400',
     status: 'online' as const,
     skills: [
@@ -224,6 +224,8 @@ const demoAgents = [
       version: '1.0.0',
       provider: 'openclaw',
       runtime: 'node',
+      host: 'hostinger-vps',
+      host_ip: '76.13.127.116',
       telegram: '@Simon_Assistant_bot',
       verified: true,
     },

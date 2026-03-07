@@ -11,7 +11,7 @@ const logger = createLogger('simon-assistant');
 const AGENT_CARD = {
   name: 'Simon Assistant',
   description:
-    'A production OpenClaw personal agent with 26+ skills including web search, browser automation, image generation, audio transcription, video processing, marketing strategy, weather, health checks, and proactive monitoring. Runs 24/7 with uptime monitoring, Reddit alerts, and morning briefings.',
+    'A production OpenClaw personal agent running 24/7 on a Hostinger VPS with 26+ skills including web search, browser automation, image generation, audio transcription, video processing, marketing strategy, weather, health checks, and proactive monitoring. Accessible via Telegram @Simon_Assistant_bot. Features uptime monitoring, Reddit alerts, and morning briefings.',
   url: AGENT_URL,
   version: '1.0.0',
   capabilities: {
